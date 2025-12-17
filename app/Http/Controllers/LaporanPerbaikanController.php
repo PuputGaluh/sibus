@@ -53,46 +53,65 @@ class LaporanPerbaikanController extends Controller
             abort(403);
         }
 
-        $request->validate([
-            'id_laporan' => 'required|integer',
-            'id_teknisi' => 'required|integer',
-            'prioritas' => 'required|in:Rendah,Sedang,Tinggi,Mendesak',
+        // ✅ Tambahkan prioritas ke validasi
+        $validated = $request->validate([
+            'id_laporan' => 'required|integer|exists:laporan_kerusakan,id_laporan',
+            'id_teknisi' => 'required|integer|exists:users,id_user',
             'tanggal_mulai_estimasi' => 'required|date',
             'tanggal_selesai_estimasi' => 'required|date|after_or_equal:tanggal_mulai_estimasi',
+            'prioritas' => 'required|in:Rendah,Sedang,Tinggi',
             'catatan' => 'nullable|string'
         ]);
 
-        // ❌ CEK BENTROK JADWAL TEKNISI
+        // 🔎 Ambil laporan kerusakan
+        $laporan = LaporanKerusakan::findOrFail($request->id_laporan);
+
+        // ✅ Cek bentrok jadwal
         $bentrok = LaporanPerbaikan::where('id_teknisi', $request->id_teknisi)
+            ->whereIn('status_perbaikan', ['Pending', 'In Progress'])
             ->where(function ($q) use ($request) {
-                $q->whereBetween('tanggal_mulai_estimasi', [
-                    $request->tanggal_mulai_estimasi,
-                    $request->tanggal_selesai_estimasi
-                ])->orWhereBetween('tanggal_selesai_estimasi', [
-                    $request->tanggal_mulai_estimasi,
-                    $request->tanggal_selesai_estimasi
-                ]);
-            })->exists();
+                $q->whereBetween('tanggal_mulai_estimasi', [$request->tanggal_mulai_estimasi, $request->tanggal_selesai_estimasi])
+                ->orWhereBetween('tanggal_selesai_estimasi', [$request->tanggal_mulai_estimasi, $request->tanggal_selesai_estimasi])
+                ->orWhere(function($sub) use ($request) {
+                    $sub->where('tanggal_mulai_estimasi', '<=', $request->tanggal_mulai_estimasi)
+                        ->where('tanggal_selesai_estimasi', '>=', $request->tanggal_selesai_estimasi);
+                });
+            })
+            ->exists();
 
         if ($bentrok) {
             return back()->withErrors([
-                'id_teknisi' => 'Teknisi sudah memiliki jadwal pada tanggal tersebut'
-            ]);
+                'error' => 'Teknisi sudah memiliki jadwal pada rentang waktu tersebut'
+            ])->withInput();
         }
 
-        LaporanPerbaikan::create([
-            'id_laporan' => $request->id_laporan,
-            'id_dispatcher' => Auth::id(),
-            'id_teknisi' => $request->id_teknisi,
-            'tanggal_validasi' => now(),
-            'prioritas' => $request->prioritas,
-            'catatan' => $request->catatan,
-            'tanggal_mulai_estimasi' => $request->tanggal_mulai_estimasi,
-            'tanggal_selesai_estimasi' => $request->tanggal_selesai_estimasi,
-            'status_perbaikan' => 'Pending'
-        ]);
+        // ✅ SIMPAN LAPORAN PERBAIKAN
+        try {
+            LaporanPerbaikan::create([
+                'id_laporan' => $laporan->id_laporan,
+                'id_dispatcher' => Auth::user()->id_user,
+                'id_teknisi' => $request->id_teknisi,
+                'tanggal_validasi' => now(),
+                'prioritas' => $request->prioritas, // ✅ Langsung dari request
+                'catatan' => $request->catatan,
+                'tanggal_mulai_estimasi' => $request->tanggal_mulai_estimasi, // ✅ Tidak perlu konversi
+                'tanggal_selesai_estimasi' => $request->tanggal_selesai_estimasi, // ✅ Tidak perlu konversi
+                'status_perbaikan' => 'Pending'
+            ]);
 
-        return redirect()->back()->with('success', 'Laporan perbaikan berhasil dibuat');
+            // 🔄 Update status laporan kerusakan
+            $laporan->update([
+                'status_proses' => 'Dijadwalkan'
+            ]);
+
+            return redirect()->back()->with('success', 'Perbaikan berhasil dijadwalkan');
+            
+        } catch (\Exception $e) {
+            // ✅ Tangkap error untuk debugging
+            return back()->withErrors([
+                'error' => 'Gagal menyimpan: ' . $e->getMessage()
+            ])->withInput();
+        }
     }
 
     /**
@@ -172,6 +191,29 @@ class LaporanPerbaikanController extends Controller
         return back()->with('success', 'Perbaikan diselesaikan');
     }
 
+    private function mapPrioritasByTingkat(int $idTingkat): string
+    {
+        return match ($idTingkat) {
+            1 => 'Rendah',   // Ringan
+            2 => 'Sedang',   // Sedang
+            3 => 'Tinggi',   // Berat
+            default => 'Rendah',
+        };
+    }
 
+        public function teknisiSchedule($id)
+    {
+        $schedules = LaporanPerbaikan::where('id_teknisi', $id)
+            ->whereIn('status_perbaikan', ['Pending', 'In Progress', 'Menunggu Validasi'])
+            ->select(
+                'tanggal_mulai_estimasi',
+                'tanggal_selesai_estimasi'
+            )
+            ->get();
+
+        return response()->json([
+            'schedules' => $schedules
+        ]);
+    }
 
 }

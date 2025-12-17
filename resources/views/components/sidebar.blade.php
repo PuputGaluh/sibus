@@ -59,8 +59,8 @@
 
         {{-- MANAJER --}}
         @if(auth()->user()->role === 'Manajer')
-            <a href="{{ route('laporan_perbaikan.index') }}"
-               class="menu-item {{ request()->routeIs('laporan_perbaikan.*') ? 'active' : '' }}">
+            <a href="{{ route('rekap.index') }}"
+               class="menu-item {{ request()->routeIs('rekap.*') ? 'active' : '' }}">
                 <i class="fas fa-chart-line"></i>
                 <span>Rekap Laporan</span>
             </a>

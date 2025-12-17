@@ -407,8 +407,8 @@
     </form>
 </dialog>
 
-{{-- ================= DIALOG DETAIL ================= --}}
-<dialog id="dialogDetail" class="modern-dialog">
+{{-- ================= DIALOG DETAIL (ENHANCED) ================= --}}
+<dialog id="dialogDetail" class="modern-dialog detail-dialog">
     <div class="dialog-header">
         <div class="dialog-title">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -886,6 +886,10 @@
         margin: 0;
     }
 
+    .detail-dialog {
+        max-width: 800px;
+    }
+
     @keyframes dialogSlideIn {
         from {
             opacity: 0;
@@ -945,7 +949,7 @@
 
     .dialog-body {
         padding: 1.5rem;
-        max-height: 60vh;
+        max-height: 70vh;
         overflow-y: auto;
     }
 
@@ -1021,24 +1025,246 @@
         background: #cbd5e1;
     }
 
-    /* Detail Content */
-    .detail-item {
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+    /* Enhanced Detail Styles */
+    .detail-header-card {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     }
 
-    .detail-item strong {
+    .detail-id-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .detail-id-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
         display: block;
-        color: var(--dark);
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
     }
 
-    .detail-item p {
-        color: var(--secondary);
+    .detail-id {
+        font-size: 1.75rem;
+        font-weight: 700;
         margin: 0;
+    }
+
+    .detail-status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 20px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-card {
+        background: #f8fafc;
+        padding: 1.25rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .detail-card:hover {
+        background: #f1f5f9;
+        transform: translateY(-2px);
+    }
+
+    .highlight-card {
+        border-left: 4px solid var(--primary);
+    }
+
+    .detail-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .bus-icon {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .teknisi-icon {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+
+    .date-icon {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .category-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .detail-card .detail-label {
+        color: var(--secondary);
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .detail-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .section-header svg {
+        color: var(--primary);
+    }
+
+    .section-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--dark);
+    }
+
+    .tingkat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .tingkat-rendah {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .tingkat-sedang {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .tingkat-tinggi {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .prioritas-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .prioritas-rendah {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .prioritas-sedang {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .prioritas-tinggi {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .prioritas-mendesak {
+        background: linear-gradient(135deg, #7c2d12, #991b1b);
+        color: white;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(124, 45, 18, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 10px rgba(124, 45, 18, 0);
+        }
+    }
+
+    .detail-text-box {
+        background: #f8fafc;
+        padding: 1.25rem;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+    }
+
+    .detail-text-box p {
+        margin: 0;
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .empty-box {
+        background: #fff7ed;
+        border-color: #fed7aa;
+    }
+
+    .empty-content {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .empty-content svg {
+        color: #f59e0b;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-content p {
+        color: #92400e;
+        font-style: italic;
     }
 
     /* Loading Spinner */
@@ -1115,6 +1341,15 @@
         .modern-table {
             min-width: 900px;
         }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-header-card {
+            flex-direction: column;
+            gap: 1rem;
+        }
     }
 </style>
 
@@ -1150,7 +1385,7 @@
         });
     }
 
-    // View detail function
+    // View detail function (ENHANCED)
     function lihatDetail(id) {
         const dialog = document.getElementById('dialogDetail');
         const content = document.getElementById('detailContent');
@@ -1177,46 +1412,326 @@
         fetch(`/laporan-perbaikan/${id}`)
             .then(res => res.json())
             .then(data => {
+                // Determine status color and icon
+                let statusClass = 'status-menunggu';
+                let statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+                
+                if (data.status_perbaikan === 'In Progress') {
+                    statusClass = 'status-proses';
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+                } else if (data.status_perbaikan === 'Selesai') {
+                    statusClass = 'status-selesai';
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+                } else if (data.status_perbaikan === 'Menunggu Validasi') {
+                    statusClass = 'status-proses';
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`;
+                }
+
+                // Determine tingkat kerusakan color
+                let tingkatClass = 'tingkat-rendah';
+                if (data.laporan_kerusakan?.tingkat?.nama_tingkat === 'Sedang') {
+                    tingkatClass = 'tingkat-sedang';
+                } else if (data.laporan_kerusakan?.tingkat?.nama_tingkat === 'Tinggi' || data.laporan_kerusakan?.tingkat?.nama_tingkat === 'Kritis') {
+                    tingkatClass = 'tingkat-tinggi';
+                }
+
+                // Determine prioritas color
+                let prioritasClass = 'prioritas-rendah';
+                if (data.prioritas === 'Sedang') {
+                    prioritasClass = 'prioritas-sedang';
+                } else if (data.prioritas === 'Tinggi') {
+                    prioritasClass = 'prioritas-tinggi';
+                } else if (data.prioritas === 'Mendesak') {
+                    prioritasClass = 'prioritas-mendesak';
+                }
+
                 content.innerHTML = `
-                    <div class="detail-item">
-                        <strong>ID Perbaikan</strong>
-                        <p>#${data.id_perbaikan}</p>
+                    <!-- Header Card -->
+                    <div class="detail-header-card">
+                        <div class="detail-id-section">
+                            <div class="detail-id-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">ID Perbaikan</span>
+                                <h3 class="detail-id">#${data.id_perbaikan}</h3>
+                            </div>
+                        </div>
+                        <div class="detail-status-badge ${statusClass}">
+                            ${statusIcon}
+                            ${data.status_perbaikan}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Bus</strong>
-                        <p>${data.laporan_kerusakan?.bus?.nama_bus ?? '-'}</p>
+
+                    <!-- Main Info Grid -->
+                    <div class="detail-grid">
+                        <!-- Bus Info -->
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon bus-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M8 6v6M16 6v6M3 16h18M3 10h18M5 20h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Bus</span>
+                                <p class="detail-value">${data.laporan_kerusakan?.bus?.nama_bus ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Teknisi Info -->
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon teknisi-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Teknisi</span>
+                                <p class="detail-value">${data.teknisi?.name ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Tanggal Info -->
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon date-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Tanggal Validasi</span>
+                                <p class="detail-value">${data.tanggal_validasi ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <!-- Kategori Info -->
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Kategori</span>
+                                <p class="detail-value">${data.laporan_kerusakan?.kategori?.nama_kategori ?? '-'}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Teknisi</strong>
-                        <p>${data.teknisi?.name ?? '-'}</p>
+
+                    <!-- Jadwal Perbaikan Section -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <h4>Jadwal Perbaikan</h4>
+                        </div>
+                        
+                        <!-- Grid untuk Tanggal Mulai & Selesai Estimasi -->
+                        <div class="detail-grid">
+                            <!-- Tanggal Mulai Estimasi -->
+                            <div class="detail-card highlight-card">
+                                <div class="detail-card-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 11 12 14 22 4"></polyline>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="detail-label">Tanggal Mulai Estimasi</span>
+                                    <p class="detail-value">${data.tanggal_mulai_estimasi ? new Date(data.tanggal_mulai_estimasi).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '-'}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Tanggal Selesai Estimasi -->
+                            <div class="detail-card highlight-card">
+                                <div class="detail-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="detail-label">Tanggal Selesai Estimasi</span>
+                                    <p class="detail-value">${data.tanggal_selesai_estimasi ? new Date(data.tanggal_selesai_estimasi).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '-'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tanggal Selesai Aktual (jika ada) -->
+                        ${data.tanggal_selesai_aktual ? `
+                            <div style="margin-top: 1rem;">
+                                <div class="detail-card" style="border-left: 4px solid #10b981; background: linear-gradient(135deg, #d1fae5, #ecfdf5);">
+                                    <div class="detail-card-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span class="detail-label">Tanggal Selesai Aktual</span>
+                                        <p class="detail-value" style="color: #059669; font-size: 1.1rem;">${new Date(data.tanggal_selesai_aktual).toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric', 
+                                            month: 'long', 
+                                            year: 'numeric', 
+                                            hour: '2-digit', 
+                                            minute: '2-digit'
+                                        })}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Grid untuk Durasi -->
+                        ${data.tanggal_mulai_estimasi && data.tanggal_selesai_estimasi ? `
+                            <div style="margin-top: 1rem;">
+                                <div class="detail-grid">
+                                    <!-- Estimasi Durasi -->
+                                    <div class="detail-card" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b;">
+                                        <div class="detail-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span class="detail-label">Estimasi Durasi</span>
+                                            <p class="detail-value" style="color: #92400e;">
+                                                ${(() => {
+                                                    const start = new Date(data.tanggal_mulai_estimasi);
+                                                    const end = new Date(data.tanggal_selesai_estimasi);
+                                                    const diffTime = Math.abs(end - start);
+                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                    return diffDays === 0 ? 'Kurang dari 1 hari' : diffDays + ' hari';
+                                                })()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Durasi Aktual (jika sudah selesai) -->
+                                    ${data.tanggal_selesai_aktual ? `
+                                        <div class="detail-card" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-left: 4px solid #3b82f6;">
+                                            <div class="detail-card-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="10"></circle>
+                                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <span class="detail-label">Durasi Aktual</span>
+                                                <p class="detail-value" style="color: #1e40af;">
+                                                    ${(() => {
+                                                        const start = new Date(data.tanggal_mulai_estimasi);
+                                                        const end = new Date(data.tanggal_selesai_aktual);
+                                                        const diffTime = Math.abs(end - start);
+                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                        const estimatedStart = new Date(data.tanggal_mulai_estimasi);
+                                                        const estimatedEnd = new Date(data.tanggal_selesai_estimasi);
+                                                        const estimatedDays = Math.ceil((estimatedEnd - estimatedStart) / (1000 * 60 * 60 * 24));
+                                                        const status = diffDays <= estimatedDays ? '✓ Tepat Waktu' : '⚠ Terlambat';
+                                                        return (diffDays === 0 ? 'Kurang dari 1 hari' : diffDays + ' hari') + ' ' + status;
+                                                    })()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
-                    <div class="detail-item">
-                        <strong>Tanggal Validasi</strong>
-                        <p>${data.tanggal_validasi ?? '-'}</p>
+
+                    <!-- Tingkat Kerusakan -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <h4>Tingkat Kerusakan</h4>
+                        </div>
+                        <div class="tingkat-badge ${tingkatClass}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            ${data.laporan_kerusakan?.tingkat?.nama_tingkat ?? '-'}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Status Perbaikan</strong>
-                        <p>${data.status_perbaikan ?? '-'}</p>
+
+                    <!-- Keterangan Kerusakan -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <h4>Keterangan Kerusakan</h4>
+                        </div>
+                        <div class="detail-text-box">
+                            <p>${data.laporan_kerusakan?.keterangan ?? '-'}</p>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Kategori Kerusakan</strong>
-                        <p>${data.laporan_kerusakan?.kategori?.nama_kategori ?? '-'}</p>
+
+                    <!-- Prioritas Perbaikan -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <h4>Prioritas Perbaikan</h4>
+                        </div>
+                        <div class="prioritas-badge ${prioritasClass}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            ${data.prioritas ?? '-'}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Tingkat Kerusakan</strong>
-                        <p>${data.laporan_kerusakan?.tingkat?.nama_tingkat ?? '-'}</p>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Keterangan Kerusakan</strong>
-                        <p>${data.laporan_kerusakan?.keterangan ?? '-'}</p>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Deskripsi Pekerjaan Teknisi</strong>
-                        <p>
+
+                    <!-- Hasil Perbaikan -->
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            <h4>Deskripsi Pekerjaan Teknisi</h4>
+                        </div>
+                        <div class="detail-text-box ${!data.deskripsi_pekerjaan_teknisi ? 'empty-box' : ''}">
                             ${data.deskripsi_pekerjaan_teknisi 
-                                ? data.deskripsi_pekerjaan_teknisi 
-                                : '<em>Belum diinput oleh teknisi</em>'}
-                        </p>
+                                ? `<p>${data.deskripsi_pekerjaan_teknisi}</p>` 
+                                : `
+                                <div class="empty-content">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                    <p>Hasil perbaikan belum diinput oleh teknisi</p>
+                                </div>
+                                `
+                            }
+                        </div>
                     </div>
                 `;
             })

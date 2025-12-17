@@ -22,8 +22,8 @@ return new class extends Migration
             $table->enum('prioritas', ['Rendah', 'Sedang', 'Tinggi', 'Mendesak']);
             $table->text('catatan')->nullable();
 
-            $table->dateTime('tanggal_mulai_estimasi')->nullable();
-            $table->dateTime('tanggal_selesai_estimasi')->nullable();
+            $table->date('tanggal_mulai_estimasi')->nullable();
+            $table->date('tanggal_selesai_estimasi')->nullable();
 
             // Diisi oleh teknisi
             $table->text('deskripsi_pekerjaan_teknisi')->nullable();

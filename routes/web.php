@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\BusController;
 use App\Http\Controllers\LaporanKerusakanController;
 use App\Http\Controllers\LaporanPerbaikanController;
+use App\Http\Controllers\RekapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -112,6 +113,32 @@ Route::middleware('auth')->group(function () {
 
         Route::put('/laporan-perbaikan/{id}/selesai', [LaporanPerbaikanController::class, 'setSelesai'])
             ->name('perbaikan.setSelesai');
+
+         Route::get('/api/teknisi-schedule/{id}', [LaporanPerbaikanController::class,'teknisiSchedule'])
+            ->middleware('auth');
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | MANAJER
+    |--------------------------------------------------------------------------
+    */
+        Route::middleware(['auth', 'role:Manajer'])->group(function () {
+
+        Route::get('/rekap', [RekapController::class, 'index'])
+            ->name('rekap.index');
+
+        Route::get('/rekap/export/pdf', [RekapController::class, 'exportPdf'])
+            ->name('rekap.export.pdf');
+
+        Route::get('/rekap/export/csv', [RekapController::class, 'exportCsv'])
+            ->name('rekap.export.csv');
+
+        Route::get('/rekap/detail/{id}', [RekapController::class, 'detailRekap'])
+            ->name('rekap.detail');
+
+
     });
 
     /*

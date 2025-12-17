@@ -395,8 +395,8 @@
     </form>
 </dialog>
 
-{{-- ================= DIALOG DETAIL ================= --}}
-<dialog id="dialogDetail" class="modern-dialog">
+{{-- ================= DIALOG DETAIL (ENHANCED) ================= --}}
+<dialog id="dialogDetail" class="modern-dialog detail-dialog">
     <div class="dialog-header">
         <div class="dialog-title">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -430,25 +430,76 @@
     </div>
 </dialog>
 
-{{-- ================= DIALOG JADWALKAN PERBAIKAN ================= --}}
-<dialog id="dialogJadwal" class="modern-dialog">
+{{-- ================= IMAGE ZOOM MODAL ================= --}}
+<dialog id="imageZoomModal" class="zoom-modal">
+    <div class="zoom-modal-content">
+        <button type="button" class="zoom-close" onclick="closeZoomModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <img id="zoomedImage" src="" alt="Zoomed Image">
+        <div class="zoom-controls">
+            <button type="button" class="zoom-btn" onclick="zoomIn()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
+            <button type="button" class="zoom-btn" onclick="zoomOut()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
+            <button type="button" class="zoom-btn" onclick="resetZoom()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"></polyline>
+                    <polyline points="23 20 23 14 17 14"></polyline>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</dialog>
+
+{{-- ================= DIALOG JADWALKAN PERBAIKAN WITH CALENDAR ================= --}}
+<dialog id="dialogJadwal" class="modern-dialog jadwal-dialog">
     <form method="POST" id="formJadwal" class="dialog-form">
         @csrf
-        @method('PUT')
-
         <div class="dialog-header">
             <div class="dialog-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
                 <h5>Jadwalkan Perbaikan</h5>
             </div>
-            <button type="button" class="btn-close"
-                onclick="document.getElementById('dialogJadwal').close()">✕</button>
+            <button type="button" class="btn-close" onclick="closeJadwalModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
         </div>
 
         <div class="dialog-body">
-
+            <!-- Teknisi Selection -->
             <div class="form-group">
-                <label>Teknisi</label>
-                <select name="id_teknisi" id="id_teknisi" class="form-input" required>
+                <label for="id_teknisi">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Pilih Teknisi
+                </label>
+                <select name="id_teknisi" id="id_teknisi" class="form-input" required onchange="loadTeknisiSchedule(this.value)">
                     <option value="">Pilih Teknisi</option>
                     @foreach($teknisi as $t)
                         <option value="{{ $t->id_user }}">{{ $t->name }}</option>
@@ -456,55 +507,114 @@
                 </select>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Tanggal Mulai</label>
-                    <input type="datetime-local"
-                           name="tanggal_mulai_estimasi"
-                           class="form-input" required>
+            <!-- Calendar Section -->
+            <div id="calendarSection" class="calendar-section" style="display: none;">
+                <div class="calendar-header">
+                    <button type="button" class="calendar-nav-btn" onclick="prevMonth()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+                    <div class="calendar-month-year" id="calendarMonthYear"></div>
+                    <button type="button" class="calendar-nav-btn" onclick="nextMonth()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
                 </div>
-
-                <div class="form-group">
-                    <label>Tanggal Selesai</label>
-                    <input type="datetime-local"
-                           name="tanggal_selesai_estimasi"
-                           class="form-input" required>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                
+                <!-- Legend -->
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <span class="legend-color available"></span>
+                        <span>Tersedia</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color busy"></span>
+                        <span>Sibuk</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color selected"></span>
+                        <span>Dipilih</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Prioritas</label>
-                <select name="prioritas" class="form-input" required>
-                    <option value="Rendah">Rendah</option>
-                    <option value="Sedang">Sedang</option>
-                    <option value="Tinggi">Tinggi</option>
-                    <option value="Mendesak">Mendesak</option>
-                </select>
+            <!-- Hidden inputs untuk menyimpan tanggal -->
+            <input type="hidden" name="tanggal_mulai_estimasi" id="tanggal_mulai_estimasi" required>
+            <input type="hidden" name="tanggal_selesai_estimasi" id="tanggal_selesai_estimasi" required>
+
+            <!-- Card untuk menampilkan tanggal yang dipilih -->
+            <div id="selectedDateDisplay" class="selected-date-display" style="display: none;">
+                <div class="date-display-card">
+                    <div class="date-display-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                    </div>
+                    <div class="date-display-content">
+                        <div class="date-display-row">
+                            <div>
+                                <div class="date-display-label">Tanggal Mulai</div>
+                                <div class="date-display-value" id="startDateText">-</div>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>                            
+                            <div>
+                                <div class="date-display-label">Tanggal Selesai</div>
+                                <div class="date-display-value" id="endDateText">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+
+            <!-- Priority (Auto-filled) -->
             <div class="form-group">
-                <label>Catatan Dispatcher</label>
-                <textarea name="catatan"
-                          class="form-input"
-                          placeholder="Catatan untuk teknisi..."></textarea>
+                <label>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    Prioritas Perbaikan
+                </label>
+                <input type="text" id="prioritas_auto" class="form-input" readonly>
+                <input type="hidden" name="prioritas" id="prioritas_hidden">
             </div>
 
+            <!-- Notes -->
+            <div class="form-group">
+                <label>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Catatan Dispatcher
+                </label>
+                <textarea name="catatan" class="form-input" rows="3" placeholder="Catatan untuk teknisi..."></textarea>
+            </div>
         </div>
 
         <div class="dialog-footer">
-            <button type="button"
-                    class="btn-secondary"
-                    onclick="document.getElementById('dialogJadwal').close()">
+            <button type="button" class="btn-secondary" onclick="closeJadwalModal()">
                 Batal
             </button>
-
-            <button type="submit" class="btn-primary">
+            <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
                 Simpan Jadwal
             </button>
         </div>
     </form>
 </dialog>
-
 
 <style>
     * {
@@ -526,6 +636,9 @@
         --border: #fee2e2;
         --shadow: rgba(220, 38, 38, 0.1);
         --shadow-lg: rgba(220, 38, 38, 0.15);
+        --calendar-available: #10b981;
+        --calendar-busy: #94a3b8;
+        --calendar-selected: #dc2626;
     }
 
     body {
@@ -983,6 +1096,14 @@
         margin: 0;
     }
 
+    .detail-dialog {
+        max-width: 800px;
+    }
+
+    .jadwal-dialog {
+        max-width: 700px;
+    }
+
     @keyframes dialogSlideIn {
         from {
             opacity: 0;
@@ -1042,7 +1163,7 @@
 
     .dialog-body {
         padding: 1.5rem;
-        max-height: 60vh;
+        max-height: 70vh;
         overflow-y: auto;
     }
 
@@ -1157,9 +1278,14 @@
         box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .btn-secondary {
@@ -1171,36 +1297,180 @@
         background: #cbd5e1;
     }
 
-    /* Detail Content */
-    .detail-item {
-        padding: 1rem;
-        background: #f8fafc;
-        border-radius: 10px;
-        margin-bottom: 1rem;
+    /* ================= CALENDAR STYLES ================= */
+    .calendar-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--border);
     }
 
-    .detail-item strong {
-        display: block;
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .calendar-month-year {
+        font-size: 1.25rem;
+        font-weight: 700;
         color: var(--dark);
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
+        text-align: center;
+        flex: 1;
     }
 
-    .detail-item p {
-        color: var(--secondary);
-        margin: 0;
-    }
-
-    .detail-image {
-        margin-top: 1rem;
+    .calendar-nav-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
         border-radius: 10px;
-        overflow: hidden;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
     }
 
-    .detail-image img {
-        width: 100%;
-        height: auto;
-        display: block;
+    .calendar-nav-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .calendar-day-header {
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--secondary);
+        padding: 0.75rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        border: 2px solid transparent;
+    }
+
+    .calendar-day.empty {
+        cursor: default;
+        opacity: 0;
+    }
+
+    .calendar-day.past {
+        color: #cbd5e1;
+        cursor: not-allowed;
+        background: #f8fafc;
+    }
+
+    .calendar-day.available {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        color: #065f46;
+        border-color: var(--calendar-available);
+    }
+
+    .calendar-day.available:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        border-color: #059669;
+    }
+
+    .calendar-day.busy {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        color: #475569;
+        border-color: var(--calendar-busy);
+        cursor: not-allowed;
+    }
+
+    .calendar-day.selected {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: white;
+        border-color: var(--calendar-selected);
+        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+        transform: scale(1.05);
+    }
+
+    .calendar-day.today {
+        position: relative;
+    }
+
+    .calendar-day.today::after {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 6px;
+        height: 6px;
+        background: var(--primary);
+        border-radius: 50%;
+    }
+
+    .calendar-day.today.selected::after {
+        background: white;
+    }
+
+    /* Calendar Legend */
+    .calendar-legend {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding-top: 1rem;
+        border-top: 2px solid var(--border);
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--secondary);
+        font-weight: 500;
+    }
+
+    .legend-color {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .legend-color.available {
+        background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        border-color: var(--calendar-available);
+    }
+
+    .legend-color.busy {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        border-color: var(--calendar-busy);
+    }
+
+    .legend-color.selected {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        border-color: var(--calendar-selected);
     }
 
     /* Loading Spinner */
@@ -1230,6 +1500,347 @@
     .loading-spinner p {
         color: var(--secondary);
         font-size: 0.95rem;
+    }
+
+    /* Image Zoom Modal */
+    .zoom-modal {
+        border: none;
+        padding: 0;
+        max-width: none;
+        max-height: none;
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: none;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .zoom-modal[open] {
+        display: flex;
+    }
+
+    .zoom-modal::backdrop {
+        background: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(8px);
+    }
+
+    .zoom-modal-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 100px 40px;
+    }
+
+    .zoom-close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 48px;
+        height: 48px;
+        border: none;
+        background: rgba(220, 38, 38, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(220, 38, 38, 0.6);
+    }
+
+    .zoom-close:hover {
+        background: rgba(185, 28, 28, 1);
+        transform: rotate(90deg) scale(1.15);
+        box-shadow: 0 6px 24px rgba(220, 38, 38, 0.8);
+    }
+
+    #zoomedImage {
+        max-width: calc(100vw - 80px);
+        max-height: calc(100vh - 180px);
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 12px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+        background: white;
+        padding: 8px;
+    }
+
+    .zoom-controls {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.75rem;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 0.875rem 1.25rem;
+        border-radius: 50px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .zoom-btn {
+        width: 44px;
+        height: 44px;
+        border: none;
+        background: rgba(220, 38, 38, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .zoom-btn:hover {
+        background: rgba(185, 28, 28, 1);
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.6);
+    }
+
+    /* Detail Dialog Styles */
+    .detail-header-card {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+
+    .detail-id-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .detail-id-icon {
+        width: 56px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-id {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .detail-status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 20px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .detail-card {
+        background: #f8fafc;
+        padding: 1.25rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .detail-card:hover {
+        background: #f1f5f9;
+        transform: translateY(-2px);
+    }
+
+    .highlight-card {
+        border-left: 4px solid var(--primary);
+    }
+
+    .detail-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .bus-icon {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .pelapor-icon {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+
+    .date-icon {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .category-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .keberangkatan-icon {
+        background: linear-gradient(135deg, #64748b, #475569);
+    }
+
+    .detail-card .detail-label {
+        color: var(--secondary);
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+        color: var(--dark);
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .detail-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .section-header svg {
+        color: var(--primary);
+    }
+
+    .section-header h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--dark);
+    }
+
+    .tingkat-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .tingkat-rendah {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .tingkat-sedang {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .tingkat-tinggi {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .detail-text-box {
+        background: #f8fafc;
+        padding: 1.25rem;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+    }
+
+    .detail-text-box p {
+        margin: 0;
+        color: var(--dark);
+        line-height: 1.6;
+    }
+
+    .detail-image-wrapper {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+    }
+
+    .detail-image {
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: zoom-in;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .detail-image:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .detail-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .zoom-hint {
+        text-align: center;
+        margin-top: 0.75rem;
+        color: var(--secondary);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .zoom-hint svg {
+        width: 16px;
+        height: 16px;
     }
 
     /* Responsive */
@@ -1278,14 +1889,188 @@
             min-width: 900px;
         }
 
-        .form-row {
+        .form-row, .detail-grid {
             grid-template-columns: 1fr;
         }
+
+        .calendar-grid {
+            gap: 0.25rem;
+        }
+
+        .calendar-day {
+            font-size: 0.85rem;
+        }
+
+        .calendar-legend {
+            gap: 1rem;
+        }
+
+        .detail-header-card {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .zoom-close {
+            top: 15px;
+            right: 15px;
+            width: 44px;
+            height: 44px;
+        }
+
+        .zoom-modal-content {
+            padding: 70px 15px;
+        }
+
+        #zoomedImage {
+            max-width: calc(100vw - 30px);
+            max-height: calc(100vh - 160px);
+            padding: 4px;
+        }
+
+        .zoom-controls {
+            bottom: 20px;
+            padding: 0.625rem 1rem;
+            gap: 0.5rem;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    /* Fadeout animation for alerts */
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    .legend-color.range {
+        background: linear-gradient(135deg, #fee2e2, #fca5a5);
+        border-color: #fca5a5;
+    }
+
+    .calendar-day.in-range {
+        background: linear-gradient(135deg, #fee2e2, #fca5a5);
+        color: #991b1b;
+        border-color: #fca5a5;
+    }
+
+    .selected-date-display {
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease;
+    }
+
+    .date-display-card {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        gap: 1.25rem;
+        align-items: center;
+        border: 2px solid var(--primary);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+    }
+
+    .date-display-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .calendar-instruction {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        color: #92400e;
+        font-weight: 500;
     }
 </style>
 
 <script>
-    // Search and filter functionality
+    // ================= GLOBAL VARIABLES =================
+    let currentZoom = 1;
+    let zoomModal = null;
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let selectedTeknisiId = null;
+    let teknisiSchedule = [];
+    let startDate = null;
+    let endDate = null;
+        
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    
+    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    // ================= IMAGE ZOOM FUNCTIONS =================
+    function openImageZoom(imageSrc) {
+        zoomModal = document.getElementById('imageZoomModal');
+        const img = document.getElementById('zoomedImage');
+        img.src = imageSrc;
+        currentZoom = 1;
+        img.style.transform = `scale(${currentZoom})`;
+        zoomModal.showModal();
+        
+        const handleBackdropClick = function(e) {
+            if (e.target === zoomModal) {
+                closeZoomModal();
+            }
+        };
+        
+        zoomModal.addEventListener('click', handleBackdropClick);
+        
+        const handleEscKey = function(e) {
+            if (e.key === 'Escape') {
+                closeZoomModal();
+            }
+        };
+        
+        zoomModal.addEventListener('keydown', handleEscKey);
+        
+        zoomModal.addEventListener('close', function cleanup() {
+            zoomModal.removeEventListener('click', handleBackdropClick);
+            zoomModal.removeEventListener('keydown', handleEscKey);
+            zoomModal.removeEventListener('close', cleanup);
+            currentZoom = 1;
+            img.style.transform = 'scale(1)';
+        }, { once: true });
+    }
+    
+    function closeZoomModal() {
+        if (zoomModal) {
+            zoomModal.close();
+        }
+    }
+
+    function zoomIn() {
+        currentZoom = Math.min(currentZoom + 0.25, 3);
+        document.getElementById('zoomedImage').style.transform = `scale(${currentZoom})`;
+    }
+
+    function zoomOut() {
+        currentZoom = Math.max(currentZoom - 0.25, 0.5);
+        document.getElementById('zoomedImage').style.transform = `scale(${currentZoom})`;
+    }
+
+    function resetZoom() {
+        currentZoom = 1;
+        document.getElementById('zoomedImage').style.transform = `scale(${currentZoom})`;
+    }
+
+    // ================= SEARCH AND FILTER =================
     document.getElementById('searchInput').addEventListener('input', function(e) {
         filterTable();
     });
@@ -1323,12 +2108,11 @@
         });
     }
 
-    // View detail function
+    // ================= DETAIL VIEW FUNCTION =================
     function lihatDetail(id) {
         const dialog = document.getElementById('dialogDetail');
         const content = document.getElementById('detailContent');
         
-        // Show loading
         content.innerHTML = `
             <div class="loading-spinner">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1350,44 +2134,185 @@
         fetch(`/laporan-kerusakan/${id}`)
             .then(res => res.json())
             .then(data => {
+                let statusClass = 'status-dilaporkan';
+                let statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+                
+                if (data.status_proses === 'Validasi Diproses') {
+                    statusClass = 'status-validasi';
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+                } else if (data.status_proses === 'Selesai') {
+                    statusClass = 'status-selesai';
+                    statusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                }
+
+                let keberangkatanClass = 'status-pool';
+                if (data.status_keberangkatan === 'Akan Berangkat') {
+                    keberangkatanClass = 'status-akan-berangkat';
+                } else if (data.status_keberangkatan === 'Perjalanan') {
+                    keberangkatanClass = 'status-perjalanan';
+                }
+
+                let tingkatClass = 'tingkat-rendah';
+                if (data.tingkat?.nama_tingkat === 'Sedang') {
+                    tingkatClass = 'tingkat-sedang';
+                } else if (data.tingkat?.nama_tingkat === 'Tinggi' || data.tingkat?.nama_tingkat === 'Kritis') {
+                    tingkatClass = 'tingkat-tinggi';
+                }
+
                 content.innerHTML = `
-                    <div class="detail-item">
-                        <strong>Nama Bus</strong>
-                        <p>${data.bus?.nama_bus ?? '-'}</p>
+                    <div class="detail-header-card">
+                        <div class="detail-id-section">
+                            <div class="detail-id-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">ID Laporan</span>
+                                <h3 class="detail-id">#${data.id_laporan}</h3>
+                            </div>
+                        </div>
+                        <div class="detail-status-badge ${statusClass}">
+                            ${statusIcon}
+                            ${data.status_proses}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Pelapor</strong>
-                        <p>${data.pelapor?.name ?? '-'}</p>
+
+                    <div class="detail-grid">
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon bus-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M8 6v6M16 6v6M3 16h18M3 10h18M5 20h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Nama Bus</span>
+                                <p class="detail-value">${data.bus?.nama_bus ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon pelapor-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Pelapor</span>
+                                <p class="detail-value">${data.pelapor?.name ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon date-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Tanggal Lapor</span>
+                                <p class="detail-value">${data.tanggal_lapor ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon category-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Kategori</span>
+                                <p class="detail-value">${data.kategori?.nama_kategori ?? '-'}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Tanggal Lapor</strong>
-                        <p>${data.tanggal_lapor ?? '-'}</p>
+
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <h4>Status Keberangkatan</h4>
+                        </div>
+                        <div class="tingkat-badge ${keberangkatanClass}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 6v6M16 6v6M3 16h18M3 10h18M5 20h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
+                            </svg>
+                            ${data.status_keberangkatan ?? '-'}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Status Keberangkatan</strong>
-                        <p>${data.status_keberangkatan ?? '-'}</p>
+
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                            <h4>Tingkat Kerusakan</h4>
+                        </div>
+                        <div class="tingkat-badge ${tingkatClass}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            ${data.tingkat?.nama_tingkat ?? '-'}
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Status Proses</strong>
-                        <p>${data.status_proses ?? '-'}</p>
+
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <h4>Keterangan Kerusakan</h4>
+                        </div>
+                        <div class="detail-text-box">
+                            <p>${data.keterangan ?? '-'}</p>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <strong>Kategori Kerusakan</strong>
-                        <p>${data.kategori?.nama_kategori ?? '-'}</p>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Tingkat Kerusakan</strong>
-                        <p>${data.tingkat?.nama_tingkat ?? '-'}</p>
-                    </div>
-                    <div class="detail-item">
-                        <strong>Keterangan</strong>
-                        <p>${data.keterangan ?? '-'}</p>
-                    </div>
+
                     ${data.foto ? `
-                        <div class="detail-item">
-                            <strong>Foto Kerusakan</strong>
-                            <div class="detail-image">
-                                <img src="/storage/${data.foto}" alt="Foto Kerusakan">
+                        <div class="detail-section">
+                            <div class="section-header">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <h4>Foto Kerusakan</h4>
+                            </div>
+                            <div class="detail-image-wrapper">
+                                <div class="detail-image" onclick="openImageZoom('/storage/${data.foto}')">
+                                    <img src="/storage/${data.foto}" alt="Foto Kerusakan">
+                                </div>
+                                <div class="zoom-hint">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        <line x1="11" y1="8" x2="11" y2="14"></line>
+                                        <line x1="8" y1="11" x2="14" y2="11"></line>
+                                    </svg>
+                                    Klik gambar untuk zoom
+                                </div>
                             </div>
                         </div>
                     ` : ''}
@@ -1410,17 +2335,239 @@
             });
     }
 
-    function openJadwalModal(idLaporan) {
-        const form = document.getElementById('formJadwal');
+    // ================= PRIORITY MAPPING =================
+    function mapPrioritasById(idTingkat) {
+        switch (parseInt(idTingkat)) {
+            case 1: return 'Rendah';
+            case 2: return 'Sedang';
+            case 3: return 'Tinggi';
+            default: return 'Rendah';
+        }
+    }
 
-        form.action = `/laporan-kerusakan/${idLaporan}/jadwalkan`;
+    // ================= CALENDAR FUNCTIONS =================
+    function prevMonth() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        renderCalendar();
+    }
 
-        document.getElementById('dialogJadwal').showModal();
+    function nextMonth() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const calendarGrid = document.getElementById('calendarGrid');
+        calendarGrid.innerHTML = '';
+
+        document.getElementById('calendarMonthYear').textContent =
+            `${monthNames[currentMonth]} ${currentYear}`;
+
+        // Header hari
+        dayNames.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'calendar-day-header';
+            header.textContent = day;
+            calendarGrid.appendChild(header);
+        });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const today = formatDate(new Date());
+
+        // Empty sebelum tanggal 1
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            calendarGrid.appendChild(empty);
+        }
+
+        // Render tanggal
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateObj = new Date(currentYear, currentMonth, day);
+            const dateString = formatDate(dateObj);
+
+            const dayCell = document.createElement('div');
+            dayCell.classList.add('calendar-day');
+
+            // Tanggal lampau
+            if (dateString < today) {
+                dayCell.classList.add('past');
+                dayCell.textContent = day;
+                calendarGrid.appendChild(dayCell);
+                continue;
+            }
+
+            // Cek sibuk
+            if (isDayBusy(dateString)) {
+                dayCell.classList.add('busy');
+            } else {
+                dayCell.classList.add('available');
+                dayCell.addEventListener('click', () => selectDate(dateString));
+            }
+
+            // Selected & range
+            if (dateString === startDate || dateString === endDate) {
+                dayCell.classList.add('selected');
+            }
+            if (startDate && endDate && dateString > startDate && dateString < endDate) {
+                dayCell.classList.add('in-range');
+            }
+
+            dayCell.textContent = day;
+            calendarGrid.appendChild(dayCell);
+        }
     }
 
 
-    // File input handler with preview
-    document.getElementById('add_foto').addEventListener('change', function(e) {
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDateDisplay(dateString) {
+        // Mengubah "2024-12-16" menjadi "Senin, 16 Des 2024"
+        const date = new Date(dateString);
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+        
+        return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function isDateInRange(dateString) {
+        if (!startDate || !endDate) return false;
+        return dateString > startDate && dateString < endDate;
+    }
+
+    function updateDateDisplay() {
+        const display = document.getElementById('selectedDateDisplay');
+        const startText = document.getElementById('startDateText');
+        const endText = document.getElementById('endDateText');
+        
+        if (startDate) {
+            display.style.display = 'block';
+            startText.textContent = formatDateDisplay(startDate);
+            endText.textContent = endDate ? formatDateDisplay(endDate) : '-';
+        } else {
+            display.style.display = 'none';
+        }
+    }
+
+    function isDayBusy(dateString) {
+        return teknisiSchedule.some(s => {
+            return dateString >= s.tanggal_mulai_estimasi &&
+                dateString <= s.tanggal_selesai_estimasi;
+        });
+    }
+
+
+    function updateSubmitButton() {
+        document.getElementById('submitBtn').disabled =
+            !(startDate && endDate && selectedTeknisiId);
+    }
+
+    // ================= LOAD TEKNISI SCHEDULE =================
+    function loadTeknisiSchedule(teknisiId) {
+        if (!teknisiId) {
+            document.getElementById('calendarSection').style.display = 'none';
+            selectedTeknisiId = null;
+            selectedDate = null;
+            teknisiSchedule = [];
+            updateSubmitButton();
+            return;
+        }
+        
+        selectedTeknisiId = teknisiId;
+        
+        // Fetch teknisi schedule from backend
+        fetch(`/api/teknisi-schedule/${teknisiId}`)
+            .then(res => res.json())
+            .then(data => {
+                teknisiSchedule = data.schedules || [];
+                document.getElementById('calendarSection').style.display = 'block';
+                
+                // Reset current month to today
+                const today = new Date();
+                currentMonth = today.getMonth();
+                currentYear = today.getFullYear();
+                
+                renderCalendar();
+            })
+            .catch(error => {
+                console.error('Error loading schedule:', error);
+                // Show calendar anyway with empty schedule
+                teknisiSchedule = [];
+                document.getElementById('calendarSection').style.display = 'block';
+                renderCalendar();
+            });
+    }
+
+    // ================= JADWAL MODAL FUNCTIONS =================
+    function openJadwalModal(idLaporan) {
+        console.log('Open jadwal untuk laporan:', idLaporan);
+
+        const form = document.getElementById('formJadwal');
+        const prioritasText = document.getElementById('prioritas_auto');
+        const prioritasHidden = document.getElementById('prioritas_hidden');
+
+        form.action = `/laporan-perbaikan`;
+
+        let input = form.querySelector('input[name="id_laporan"]');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id_laporan';
+            form.appendChild(input);
+        }
+        input.value = idLaporan;
+
+        prioritasText.value = 'Memuat...';
+        prioritasHidden.value = 'Rendah';
+
+        fetch(`/laporan-kerusakan/${idLaporan}`)
+            .then(res => res.json())
+            .then(data => {
+                const prioritas = mapPrioritasById(data.id_tingkat);
+                prioritasText.value = prioritas;
+                prioritasHidden.value = prioritas;
+                const modal = document.getElementById('dialogJadwal');
+                if (!modal.open) modal.showModal();
+            })
+            .catch(() => {
+                prioritasText.value = 'Rendah';
+                prioritasHidden.value = 'Rendah';
+                const modal = document.getElementById('dialogJadwal');
+                if (!modal.open) modal.showModal();    
+        });
+    }
+
+
+    function closeJadwalModal() {
+        document.getElementById('dialogJadwal').close();
+        document.getElementById('formJadwal').reset();
+
+        startDate = null;
+        endDate = null;
+        selectedTeknisiId = null;
+        teknisiSchedule = [];
+
+        document.getElementById('calendarSection').style.display = 'none';
+        updateSubmitButton();
+    }
+
+
+    // ================= FILE INPUT HANDLER =================
+    document.getElementById('add_foto')?.addEventListener('change', function(e) {
         const file = e.target.files[0];
         const fileName = document.querySelector('.file-name');
         const preview = document.getElementById('imagePreview');
@@ -1441,7 +2588,7 @@
         }
     });
 
-    // Table sorting
+    // ================= TABLE SORTING =================
     document.querySelectorAll('.th-content').forEach(th => {
         th.addEventListener('click', function() {
             const table = this.closest('table');
@@ -1466,7 +2613,7 @@
         });
     });
 
-    // Auto-hide alert
+    // ================= AUTO-HIDE ALERTS =================
     window.addEventListener('load', function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(alert => {
@@ -1477,20 +2624,48 @@
         });
     });
 
-    // Add fadeOut animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: translateY(0);
+    function selectDate(dateString) {
+        if (!startDate) {
+            // Klik pertama: set tanggal mulai
+            startDate = dateString;
+            endDate = null;
+        } else if (!endDate) {
+            // Klik kedua: set tanggal selesai
+            if (dateString < startDate) {
+                // Jika klik tanggal sebelum mulai, swap
+                endDate = startDate;
+                startDate = dateString;
+            } else if (dateString === startDate) {
+                // Jika klik tanggal yang sama, deselect
+                startDate = null;
+                endDate = null;
+            } else {
+                endDate = dateString;
             }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
+        } else {
+            // Klik ketiga: reset dan mulai baru
+            startDate = dateString;
+            endDate = null;
         }
-    `;
-    document.head.appendChild(style);
+        
+        // Update hidden inputs
+        if (startDate) {
+            document.getElementById('tanggal_mulai_estimasi').value = startDate;
+        }
+        if (endDate) {
+            document.getElementById('tanggal_selesai_estimasi').value = endDate;
+        }
+        
+        // Update tampilan
+        updateDateDisplay();
+        
+        // Re-render calendar untuk menampilkan selection
+        renderCalendar();
+        
+        // Update submit button
+        updateSubmitButton();
+    }
+
 </script>
+
 @endsection
