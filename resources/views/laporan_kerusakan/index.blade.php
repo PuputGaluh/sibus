@@ -21,7 +21,7 @@
                 </div>
             </div>
             @if(auth()->user()->role === 'Teknisi')
-                <button class="btn-add" onclick="document.getElementById('dialogTambahLaporan').showModal()">
+                <button class="btn-add" onclick="openTambahLaporan()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -149,6 +149,7 @@
                         </div>
                     </th>
                     <th>Tanggal Lapor</th>
+                    <th>Lokasi</th> 
                     <th>Status Keberangkatan</th>
                     <th>Status Proses</th>
                     <th>Aksi</th>
@@ -184,6 +185,28 @@
                                 <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
                             {{ $item->tanggal_lapor }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="location-cell">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+
+                            @if($item->latitude && $item->longitude)
+                                <a  href="https://www.google.com/maps?q={{ $item->latitude }},{{ $item->longitude }}"
+                                    target="_blank"
+                                    class="location-text"
+                                    title="Buka di Google Maps">
+                                    {{ $item->lokasi_nama ?? 'Lihat Lokasi' }}
+                                </a>
+                            @else
+                                <span class="location-text text-muted">
+                                    -
+                                </span>
+                            @endif
                         </div>
                     </td>
                     <td>
@@ -242,7 +265,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="empty-state">
+                    <td colspan="8" class="empty-state">
                         <div class="empty-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -258,7 +281,7 @@
     </div>
 </div>
 
-{{-- ================= DIALOG TAMBAH LAPORAN ================= --}}
+{{-- ================= DIALOG TAMBAH LAPORAN (FIXED VERSION) ================= --}}
 <dialog id="dialogTambahLaporan" class="modern-dialog">
     <form action="{{ route('laporan.store') }}" method="POST" enctype="multipart/form-data" class="dialog-form">
         @csrf
@@ -272,7 +295,7 @@
                 </svg>
                 <h5>Form Laporan Kerusakan</h5>
             </div>
-            <button type="button" class="btn-close" onclick="document.getElementById('dialogTambahLaporan').close()">
+            <button type="button" class="btn-close" onclick="closeTambahLaporanDialog()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -310,6 +333,53 @@
                         <option value="Akan Berangkat">Akan Berangkat</option>
                         <option value="Perjalanan">Perjalanan</option>
                     </select>
+                </div>
+            </div>
+
+            {{-- MAP SECTION - Hanya muncul saat status Perjalanan --}}
+            <div class="form-group" id="mapSection" style="display:none;">
+                <label>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Lokasi Kerusakan
+                </label>
+                
+                {{-- Map Container --}}
+                <div id="map" style="height:300px; width:100%; border-radius:12px; background:#e5e7eb; position:relative; overflow:hidden;"></div>
+
+                {{-- Hidden Inputs for Location Data --}}
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+                <input type="hidden" name="lokasi_nama" id="lokasi_nama">
+
+                {{-- Map Instructions --}}
+                <div style="margin-top: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #92400e; flex-shrink: 0;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <small style="color: #92400e; font-weight: 500;">Klik pada peta atau drag marker untuk menentukan lokasi kerusakan saat perjalanan</small>
+                </div>
+
+                {{-- Current Location Display --}}
+                <div id="locationDisplay" style="margin-top: 0.75rem; padding: 0.75rem; background: #f8fafc; border-radius: 8px; display: none;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #dc2626;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <strong style="color: #0f172a; font-size: 0.875rem;">Lokasi Terpilih:</strong>
+                    </div>
+                    <div style="color: #64748b; font-size: 0.85rem; line-height: 1.5;">
+                        <div>📍 <span id="displayLokasi">-</span></div>
+                        <div style="margin-top: 0.25rem; font-size: 0.8rem; opacity: 0.8;">
+                            Lat: <span id="displayLat">-</span>, Lng: <span id="displayLng">-</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -382,10 +452,10 @@
             </div>
         </div>
         <div class="dialog-footer">
-            <button type="button" class="btn-secondary" onclick="document.getElementById('dialogTambahLaporan').close()">
+            <button type="button" class="btn-secondary" onclick="closeTambahLaporanDialog()">
                 Batal
             </button>
-            <button type="submit" class="btn-primary">
+            <button type="submit" class="btn-primary" id="submitLaporan" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
@@ -1995,6 +2065,65 @@
         color: #92400e;
         font-weight: 500;
     }
+
+     /* Additional styles for map section */
+    #mapSection {
+        transition: all 0.3s ease;
+    }
+
+    #map {
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #map::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        border: 2px solid rgba(220, 38, 38, 0.2);
+        border-radius: 12px;
+    }
+
+    #locationDisplay {
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .bus-info, .pelapor-info, .date-cell, .location-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--dark);
+    }
+
+    .bus-info svg, .pelapor-info svg, .date-cell svg, .location-cell svg {
+        color: var(--secondary);
+        flex-shrink: 0;
+    }
+
+    .location-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .location-icon {
+        background: linear-gradient(135deg, #ec4899, #db2777);
+    }
 </style>
 
 <script>
@@ -2218,6 +2347,31 @@
                             <div>
                                 <span class="detail-label">Tanggal Lapor</span>
                                 <p class="detail-value">${data.tanggal_lapor ?? '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-card highlight-card">
+                            <div class="detail-card-icon location-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="detail-label">Lokasi</span>
+                                <p class="detail-value">
+                                    ${
+                                        data.latitude && data.longitude
+                                        ? `
+                                            <a href="https://www.google.com/maps?q=${data.latitude},${data.longitude}"
+                                            target="_blank"
+                                            style="color:#dc2626; font-weight:600; text-decoration:none;">
+                                                ${data.lokasi_nama ?? 'Lihat Lokasi di Maps'}
+                                            </a>
+                                        `
+                                        : '-'
+                                    }
+                                </p>                           
                             </div>
                         </div>
 
@@ -2514,7 +2668,7 @@
 
     // ================= JADWAL MODAL FUNCTIONS =================
     function openJadwalModal(idLaporan) {
-        console.log('Open jadwal untuk laporan:', idLaporan);
+        // console.log('Open jadwal untuk laporan:', idLaporan);
 
         const form = document.getElementById('formJadwal');
         const prioritasText = document.getElementById('prioritas_auto');
@@ -2666,6 +2820,310 @@
         updateSubmitButton();
     }
 
+     // ================= GOOGLE MAPS VARIABLES =================
+    let map, marker, geocoder;
+    let mapInitialized = false;
+
+    // ================= INITIALIZE GOOGLE MAPS =================
+    function initMap() {
+        // console.log('🗺️ Initializing Google Maps...');
+
+        const purabaya = { lat: -7.341549, lng: 112.723636 };
+
+        geocoder = new google.maps.Geocoder(); // ✅ TAMBAH INI        
+
+
+        try {
+            // Create map
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: purabaya,
+                zoom: 14,
+                mapTypeControl: true,
+                streetViewControl: false,
+                fullscreenControl: true,
+                zoomControl: true,
+            });
+
+            // Create marker
+            marker = new google.maps.Marker({
+                position: purabaya,
+                map: map,
+                draggable: true,
+                title: "Lokasi Kerusakan",
+                animation: google.maps.Animation.DROP
+            });
+
+            // Set initial values
+            updateLocationValues(purabaya);
+
+            // Event listener: Click on map
+            map.addListener("click", function (event) {
+                // console.log('📍 Map clicked:', event.latLng.toString());
+                marker.setPosition(event.latLng);
+                updateLocationValues(event.latLng);
+            });
+
+            // Event listener: Drag marker
+            marker.addListener("dragend", function (event) {
+                // console.log('🔄 Marker dragged:', event.latLng.toString());
+                updateLocationValues(event.latLng);
+            });
+
+            mapInitialized = true;
+            // console.log('✓ Google Maps initialized successfully');
+
+        } catch (error) {
+            console.error('❌ Error initializing map:', error);
+            showMapError();
+        }
+    }
+
+    // ================= UPDATE LOCATION VALUES =================
+    function updateLocationValues(latLng) {
+        let lat, lng;
+
+        // Support LatLng object & plain object
+        if (typeof latLng.lat === 'function') {
+            lat = latLng.lat();
+            lng = latLng.lng();
+        } else {
+            lat = latLng.lat;
+            lng = latLng.lng;
+        }
+
+        // Hidden inputs (backend)
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+
+        // Koordinat ke UI
+        document.getElementById('displayLat').textContent = lat.toFixed(6);
+        document.getElementById('displayLng').textContent = lng.toFixed(6);
+
+        // Reverse geocoding → ambil NAMA JALAN
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+        // console.log('GEOCODE STATUS:', status);
+        // console.log('GEOCODE RESULTS:', results);
+        let lokasiText = 'Lokasi tidak ditemukan';
+
+        if (status === 'OK' && results.length > 0) {
+            const components = results[0].address_components;
+
+            const route = components.find(c => c.types.includes('route'));
+            const streetNumber = components.find(c => c.types.includes('street_number'));
+
+            if (route && streetNumber) {
+                lokasiText = `${route.long_name} No. ${streetNumber.long_name}`;
+            } else if (route) {
+                lokasiText = route.long_name;
+            } else {
+                lokasiText = results[0].formatted_address;
+            }
+        }
+
+        // ✅ SET VALUE KE INPUT
+        document.getElementById('lokasi_nama').value = lokasiText;
+
+        // UI
+        document.getElementById('displayLokasi').textContent = lokasiText;
+        document.getElementById('locationDisplay').style.display = 'block';
+
+        // 🔑 AKTIFKAN SUBMIT
+        document.getElementById('submitLaporan').disabled = false;
+        });
+    }
+
+
+
+
+    // ================= SHOW MAP ERROR =================
+    function showMapError() {
+        const mapDiv = document.getElementById('map');
+        if (mapDiv) {
+            mapDiv.innerHTML = `
+                <div style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; background: #fee2e2; color: #991b1b; padding: 2rem; text-align: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    <div>
+                        <strong>Gagal memuat peta</strong>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">Pastikan Google Maps API Key valid</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // ================= HANDLE STATUS KEBERANGKATAN CHANGE =================
+    function handleStatusChange(event) {
+        const status = event.target.value;
+        const mapSection = document.getElementById('mapSection');
+
+        if (status === 'Perjalanan') {
+            document.getElementById('submitLaporan').disabled = true;
+            mapSection.style.display = 'block';
+
+            setTimeout(() => {
+                loadGoogleMaps(() => {
+                    if (!mapInitialized) {
+                        initMap();
+                    }
+
+                    setTimeout(() => {
+                        google.maps.event.trigger(map, 'resize');
+                        map.setCenter({ lat: -7.341549, lng: 112.723636 });
+                    }, 100);
+                });
+            }, 200);
+
+        } else {
+            document.getElementById('submitLaporan').disabled = false;
+            mapSection.style.display = 'none';
+            clearMapValues();
+        }
+    }
+
+
+
+    // ================= OPEN DIALOG TAMBAH LAPORAN =================
+    function openTambahLaporan() {
+        const dialog = document.getElementById('dialogTambahLaporan');
+        dialog.showModal();
+
+        dialog.addEventListener('transitionend', initMapAfterDialog, { once: true });
+
+        // fallback kalau browser tidak trigger transition
+        setTimeout(initMapAfterDialog, 400);
+    }
+
+    function initMapAfterDialog() {
+        const statusSelect = document.getElementById('add_status_keberangkatan');
+
+        if (statusSelect.value === 'Perjalanan') {
+            document.getElementById('mapSection').style.display = 'block';
+
+            loadGoogleMaps(() => {
+                if (!mapInitialized) {
+                    initMap();
+                }
+
+                setTimeout(() => {
+                    google.maps.event.trigger(map, 'resize');
+                    map.setCenter({ lat: -7.341549, lng: 112.723636 });
+                }, 100);
+            });
+        }
+    }
+
+
+    // ================= CLOSE DIALOG TAMBAH LAPORAN =================
+    function closeTambahLaporanDialog() {
+        // console.log('❌ Closing dialog tambah laporan...');
+        
+        const dialog = document.getElementById('dialogTambahLaporan');
+        dialog.close();
+        
+        // Reset form
+        const form = dialog.querySelector('form');
+        if (form) {
+            form.reset();
+        }
+        
+        // Hide map section
+        const mapSection = document.getElementById('mapSection');
+        if (mapSection) {
+            mapSection.style.display = 'none';
+        }
+        
+        // Hide location display
+        const locationDisplay = document.getElementById('locationDisplay');
+        if (locationDisplay) {
+            locationDisplay.style.display = 'none';
+        }
+    }
+
+    // ================= EVENT LISTENERS =================
+    document.addEventListener('DOMContentLoaded', () => {
+        // console.log('📄 DOM Content Loaded');
+        
+        // Attach event listener to status select
+        const statusSelect = document.getElementById('add_status_keberangkatan');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', handleStatusChange);
+            // console.log('✓ Status change listener attached');
+        } else {
+            // console.error('❌ Status select element not found');
+        }
+
+        // Check if Google Maps is available
+        if (typeof google !== 'undefined' && google.maps) {
+            // console.log('✓ Google Maps API already loaded');
+        } else {
+            // console.log('⏳ Waiting for Google Maps API to load...');
+            // console.log('🔑 Google Maps Key:', "{{ config('services.google.maps_key') }}");
+        }
+    });
+
+    // ================= LOAD GOOGLE MAPS DYNAMICALLY =================
+    let googleMapsLoaded = false;
+    let googleMapsLoading = false;
+
+    function loadGoogleMaps(callback) {
+        if (googleMapsLoaded) {
+            callback();
+            return;
+        }
+
+        if (googleMapsLoading) {
+            const wait = setInterval(() => {
+                if (googleMapsLoaded) {
+                    clearInterval(wait);
+                    callback();
+                }
+            }, 100);
+            return;
+        }
+
+        googleMapsLoading = true;
+
+        window.initMapCallback = () => {
+            // console.log('✓ Google Maps API loaded');
+            googleMapsLoaded = true;
+            googleMapsLoading = false;
+            callback();
+        };
+
+        const script = document.createElement('script');
+        script.src =
+            "https://maps.googleapis.com/maps/api/js" +
+            "?key={{ config('services.google.maps_key') }}" +
+            "&callback=initMapCallback" +
+            "&v=weekly";
+
+        script.async = true;
+        script.defer = true;
+
+        script.onerror = () => {
+            googleMapsLoading = false;
+            console.error('❌ Google Maps gagal dimuat');
+            showMapError();
+        };
+
+        document.head.appendChild(script);
+    }
+
+    
+    function clearMapValues() {
+        document.getElementById('latitude').value = '';
+        document.getElementById('longitude').value = '';
+        document.getElementById('lokasi_nama').value = '';
+        
+        const locationDisplay = document.getElementById('locationDisplay');
+        if (locationDisplay) {
+            locationDisplay.style.display = 'none';
+        }
+    }
 </script>
 
 @endsection

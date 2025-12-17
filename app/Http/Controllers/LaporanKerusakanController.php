@@ -43,6 +43,7 @@ class LaporanKerusakanController extends Controller
     /**
      * =================================================
      * SIMPAN LAPORAN KERUSAKAN (TEKNISI)
+     * + GOOGLE MAPS LOCATION
      * =================================================
      */
     public function store(Request $request)
@@ -55,22 +56,86 @@ class LaporanKerusakanController extends Controller
             'id_bus' => 'required|integer',
             'id_kategori' => 'required|integer',
             'id_tingkat' => 'required|integer',
-            'status_keberangkatan' => 'required',
+            'status_keberangkatan' => 'required|in:Pool,Akan Berangkat,Perjalanan',
+            'lokasi_nama' => 'nullable|string|max:255',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'keterangan' => 'nullable|string',
             'foto' => 'nullable|image|max:2048'
         ]);
 
-        $foto = null;
-        if ($request->hasFile('foto')) {
-            $foto = $request->file('foto')->store('laporan_kerusakan', 'public');
+
+        if (
+            $request->status_keberangkatan === 'Perjalanan' &&
+            empty($request->lokasi_nama)
+        ) {
+            return back()
+                ->withErrors([
+                    'lokasi' => 'Nama jalan gagal didapatkan, silakan klik ulang peta'
+                ])
+                ->withInput();
+        }
+        /**
+         * ==========================
+         * LOGIKA LOKASI OTOMATIS
+         * ==========================
+         */
+        $lokasiNama = null;
+        $lat = null;
+        $lng = null;
+
+        // POOL → Terminal Purabaya
+        if ($request->status_keberangkatan === 'Pool') {
+            $lokasiNama = 'Terminal Purabaya';
+            $lat = -7.35132;
+            $lng = 112.7254;
         }
 
+        // AKAN BERANGKAT → Sekitar pintu keluar
+        if ($request->status_keberangkatan === 'Akan Berangkat') {
+            $lokasiNama = 'Keluar Terminal Purabaya';
+            $lat = -7.35080;
+            $lng = 112.72620;
+        }
+
+        // PERJALANAN → Ambil dari Google Maps
+        if ($request->status_keberangkatan === 'Perjalanan') {
+            if (!$request->latitude || !$request->longitude) {
+                return back()->withErrors([
+                    'lokasi' => 'Lokasi wajib dipilih pada peta'
+                ]);
+            }
+
+            $lokasiNama = $request->lokasi_nama ?? 'Dalam Perjalanan (Rute Purabaya)';
+            $lat = $request->latitude;
+            $lng = $request->longitude;
+        }
+
+        /**
+         * ==========================
+         * UPLOAD FOTO
+         * ==========================
+         */
+        $foto = null;
+        if ($request->hasFile('foto')) {
+            $foto = $request->file('foto')
+                ->store('laporan_kerusakan', 'public');
+        }
+
+        /**
+         * ==========================
+         * SIMPAN DATA
+         * ==========================
+         */
         LaporanKerusakan::create([
             'id_pelapor' => Auth::id(),
             'id_bus' => $request->id_bus,
             'id_kategori' => $request->id_kategori,
             'id_tingkat' => $request->id_tingkat,
             'status_keberangkatan' => $request->status_keberangkatan,
+            'lokasi_nama' => $lokasiNama,
+            'latitude' => $lat,
+            'longitude' => $lng,
             'keterangan' => $request->keterangan,
             'tanggal_lapor' => now(),
             'foto' => $foto,
@@ -122,13 +187,11 @@ class LaporanKerusakanController extends Controller
     /**
      * =================================================
      * JADWALKAN PERBAIKAN (DISPATCHER)
-     * + AUTO CREATE LAPORAN PERBAIKAN
+     * + CEK BENTROK
      * =================================================
      */
     public function jadwalkan(Request $request, $id)
     {
-        // dd('MASUK CONTROLLER', $request->all());
-
         if (Auth::user()->role !== 'Dispatcher') {
             abort(403);
         }
@@ -144,9 +207,9 @@ class LaporanKerusakanController extends Controller
         $laporan = LaporanKerusakan::findOrFail($id);
 
         /**
-         * ❌ CEK BENTROK JADWAL
-         * - Teknisi sama
-         * - Tanggal overlap
+         * ==========================
+         * CEK BENTROK JADWAL
+         * ==========================
          */
         $bentrok = LaporanPerbaikan::where('id_teknisi', $request->id_teknisi)
             ->where(function ($q) use ($request) {
@@ -171,7 +234,9 @@ class LaporanKerusakanController extends Controller
         }
 
         /**
-         * ✅ BUAT LAPORAN PERBAIKAN
+         * ==========================
+         * BUAT LAPORAN PERBAIKAN
+         * ==========================
          */
         LaporanPerbaikan::create([
             'id_laporan' => $laporan->id_laporan,
@@ -185,9 +250,6 @@ class LaporanKerusakanController extends Controller
             'status_perbaikan' => 'Pending'
         ]);
 
-        /**
-         * ✅ UPDATE STATUS LAPORAN KERUSAKAN
-         */
         $laporan->update([
             'status_proses' => 'Dijadwalkan'
         ]);

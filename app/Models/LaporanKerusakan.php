@@ -15,6 +15,9 @@ class LaporanKerusakan extends Model
         'id_kategori',
         'id_tingkat',
         'status_keberangkatan',
+        'lokasi_nama',
+        'latitude',
+        'longitude',
         'keterangan',
         'tanggal_lapor',
         'foto',
@@ -45,5 +48,10 @@ class LaporanKerusakan extends Model
             TingkatKerusakan::class,
             'id_tingkat',
         );
+    }
+
+    public function laporanPerbaikan()
+    {
+        return $this->hasOne(LaporanPerbaikan::class, 'id_laporan', 'id_laporan');
     }
 }

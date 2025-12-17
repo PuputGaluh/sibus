@@ -235,6 +235,7 @@
                 <th width="12%">Kategori</th>
                 <th width="10%">Tingkat</th>
                 <th width="12%">Tgl Lapor</th>
+                <th width="15%">Lokasi</th>
                 <th width="12%">Status</th>
                 <th width="12%">Teknisi</th>
                 <th width="12%">Tgl Selesai</th>
@@ -257,6 +258,7 @@
                     </span>
                 </td>
                 <td class="text-center">{{ \Carbon\Carbon::parse($row->tanggal_laporan)->format('d/m/Y H:i') }}</td>
+                <td>{{ $row->lokasi_nama ?? '-' }}</td>
                 <td class="text-center">
                     <span class="badge 
                         @if($row->status_perbaikan == 'Belum Dijadwalkan' || $row->status_perbaikan == 'Pending') badge-pending

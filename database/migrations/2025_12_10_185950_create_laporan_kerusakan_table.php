@@ -18,10 +18,14 @@ return new class extends Migration
             $table->unsignedInteger('id_kategori');
             $table->unsignedInteger('id_tingkat');
             $table->enum('status_keberangkatan', ['Pool', 'Akan Berangkat', 'Perjalanan']);
+            $table->string('lokasi_nama')->nullable();
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->text('keterangan')->nullable();
             $table->dateTime('tanggal_lapor');
             $table->string('foto', 255)->nullable();
             $table->enum('status_proses', ['Dilaporkan', 'Validasi Diproses', 'Dijadwalkan', 'Dalam Perbaikan', 'Selesai']);
+
             $table->timestamps();
 
             // Foreign keys

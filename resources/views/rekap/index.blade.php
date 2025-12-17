@@ -137,6 +137,7 @@
                     <th>Kategori</th>
                     <th>Tingkat</th>
                     <th>Tanggal Lapor</th>
+                    <th>Lokasi</th>
                     <th>Status Perbaikan</th>
                     <th>Teknisi</th>
                     <th>Hasil Perbaikan</th>
@@ -179,6 +180,17 @@
                                 <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
                             {{ $row->tanggal_laporan }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="date-cell">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            {{ $row->lokasi_nama ?? '-' }}
                         </div>
                     </td>
                     <td>
@@ -1370,6 +1382,10 @@
                     <div class="detail-item">
                         <div class="detail-label">Tanggal Lapor</div>
                         <div class="detail-value">${formatDate(data.tanggal_laporan)}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Lokasi</div>
+                        <div class="detail-value">${data.lokasi_nama || '-'}</div>
                     </div>
                 </div>
 
