@@ -11,7 +11,11 @@ class Bus extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'nama_bus'
+        'nama_bus',
+        'deskripsi',
+        'kapasitas_penumpang',
+        'kapasitas_baterai',
+        'jenis_baterai'
     ];
 
     // ================= RELASI =================

@@ -20,7 +20,17 @@ class LaporanPerbaikan extends Model
         'tanggal_selesai_estimasi',
         'deskripsi_pekerjaan_teknisi',
         'tanggal_selesai_aktual',
-        'status_perbaikan'
+        'status_perbaikan',
+        'gambar_perbaikan'
+    ];
+
+    protected $casts = [
+        'tanggal_validasi' => 'datetime',
+        'tanggal_mulai_estimasi' => 'datetime',
+        'tanggal_selesai_estimasi' => 'datetime',
+        'tanggal_selesai_aktual' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /* ================= RELASI ================= */

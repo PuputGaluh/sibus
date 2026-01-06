@@ -20,7 +20,7 @@
                 </div>
                 <div>
                     <h1>Kelola Bus</h1>
-                    <p class="subtitle">Manage bus fleet and information</p>
+                    <p class="subtitle">Mengelola armada bus dan informasinya</p>
                 </div>
             </div>
             <button class="btn-add" onclick="document.getElementById('dialogTambahBus').showModal()">
@@ -65,6 +65,10 @@
                             </svg>
                         </div>
                     </th>
+                    <th>Deskripsi</th>
+                    <th>Kapasitas Penumpang</th>
+                    <th>Kapasitas Baterai</th>
+                    <th>Jenis Baterai</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -76,6 +80,18 @@
                         <div class="bus-info">
                             <span class="bus-name">{{ $b->nama_bus }}</span>
                         </div>
+                    </td>
+                    <td>
+                        <span class="description-text">{{ $b->deskripsi ?? '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="spec-text">{{ $b->kapasitas_penumpang ?? '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="spec-text">{{ $b->kapasitas_baterai ?? '-' }}</span>
+                    </td>
+                    <td>
+                        <span class="spec-text">{{ $b->jenis_baterai ?? '-' }}</span>
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -145,6 +161,79 @@
                                        placeholder="Masukkan nama bus"
                                        required>
                             </div>
+                            <div class="form-group">
+                                <label for="edit_deskripsi_{{ $b->id_bus }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                    </svg>
+                                    Deskripsi
+                                </label>
+                                <textarea id="edit_deskripsi_{{ $b->id_bus }}"
+                                       class="form-input" 
+                                       name="deskripsi"
+                                       placeholder="Informasi tambahan tentang bus"
+                                       rows="2">{{ $b->deskripsi }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_kapasitas_{{ $b->id_bus }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    Kapasitas Penumpang
+                                </label>
+                                <input type="text" 
+                                       id="edit_kapasitas_{{ $b->id_bus }}"
+                                       class="form-input" 
+                                       name="kapasitas_penumpang"
+                                       value="{{ $b->kapasitas_penumpang }}" 
+                                       placeholder="Contoh: 40 penumpang">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_kapasitas_baterai_{{ $b->id_bus }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect>
+                                        <line x1="22" y1="11" x2="22" y2="13"></line>
+                                    </svg>
+                                    Kapasitas Baterai
+                                </label>
+                                <select id="edit_kapasitas_baterai_{{ $b->id_bus }}"
+                                       class="form-input" 
+                                       name="kapasitas_baterai" 
+                                       required>
+                                    <option value="">-- Pilih Kapasitas Baterai --</option>
+                                    <option value="100 kWh" {{ $b->kapasitas_baterai == '100 kWh' ? 'selected' : '' }}>100 kWh</option>
+                                    <option value="150 kWh" {{ $b->kapasitas_baterai == '150 kWh' ? 'selected' : '' }}>150 kWh</option>
+                                    <option value="200 kWh" {{ $b->kapasitas_baterai == '200 kWh' ? 'selected' : '' }}>200 kWh</option>
+                                    <option value="250 kWh" {{ $b->kapasitas_baterai == '250 kWh' ? 'selected' : '' }}>250 kWh</option>
+                                    <option value="300 kWh" {{ $b->kapasitas_baterai == '300 kWh' ? 'selected' : '' }}>300 kWh</option>
+                                    <option value="350 kWh" {{ $b->kapasitas_baterai == '350 kWh' ? 'selected' : '' }}>350 kWh</option>
+                                    <option value="400 kWh" {{ $b->kapasitas_baterai == '400 kWh' ? 'selected' : '' }}>400 kWh</option>
+                                    <option value="450 kWh" {{ $b->kapasitas_baterai == '450 kWh' ? 'selected' : '' }}>450 kWh</option>
+                                    <option value="500 kWh" {{ $b->kapasitas_baterai == '500 kWh' ? 'selected' : '' }}>500 kWh</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit_baterai_{{ $b->id_bus }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect>
+                                        <line x1="22" y1="11" x2="22" y2="13"></line>
+                                    </svg>
+                                    Jenis Baterai
+                                </label>
+                                <select id="edit_baterai_{{ $b->id_bus }}"
+                                       class="form-input" 
+                                       name="jenis_baterai" 
+                                       required>
+                                    <option value="">-- Pilih Jenis Baterai --</option>
+                                    <option value="LiFePO4" {{ $b->jenis_baterai == 'LiFePO4' ? 'selected' : '' }}>LiFePO4 (Lithium Iron Phosphate)</option>
+                                    <option value="NCA" {{ $b->jenis_baterai == 'NCA' ? 'selected' : '' }}>NCA (Nickel Cobalt Aluminum)</option>
+                                    <option value="NMC" {{ $b->jenis_baterai == 'NMC' ? 'selected' : '' }}>NMC (Nickel Manganese Cobalt)</option>
+                                    <option value="LCO" {{ $b->jenis_baterai == 'LCO' ? 'selected' : '' }}>LCO (Lithium Cobalt Oxide)</option>
+                                    <option value="LMO" {{ $b->jenis_baterai == 'LMO' ? 'selected' : '' }}>LMO (Lithium Manganese Oxide)</option>
+                                    <option value="LNMO" {{ $b->jenis_baterai == 'LNMO' ? 'selected' : '' }}>LNMO (Lithium Nickel Manganese Oxide)</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="dialog-footer">
                             <button type="button" class="btn-secondary" onclick="document.getElementById('dialogEditBus{{ $b->id_bus }}').close()">
@@ -201,6 +290,78 @@
                        name="nama_bus" 
                        placeholder="Masukkan nama bus"
                        required>
+            </div>
+            <div class="form-group">
+                <label for="add_deskripsi">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Deskripsi
+                </label>
+                <textarea id="add_deskripsi"
+                       class="form-input" 
+                       name="deskripsi" 
+                       placeholder="Informasi tambahan tentang bus"
+                       rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="add_kapasitas">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Kapasitas Penumpang
+                </label>
+                <input type="text" 
+                       id="add_kapasitas"
+                       class="form-input" 
+                       name="kapasitas_penumpang" 
+                       placeholder="Contoh: 40 penumpang">
+            </div>
+            <div class="form-group">
+                <label for="add_kapasitas_baterai">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect>
+                        <line x1="22" y1="11" x2="22" y2="13"></line>
+                    </svg>
+                    Kapasitas Baterai
+                </label>
+                <select id="add_kapasitas_baterai"
+                       class="form-input" 
+                       name="kapasitas_baterai" 
+                       required>
+                    <option value="">-- Pilih Kapasitas Baterai --</option>
+                    <option value="100 kWh">100 kWh</option>
+                    <option value="150 kWh">150 kWh</option>
+                    <option value="200 kWh">200 kWh</option>
+                    <option value="250 kWh">250 kWh</option>
+                    <option value="300 kWh">300 kWh</option>
+                    <option value="350 kWh">350 kWh</option>
+                    <option value="400 kWh">400 kWh</option>
+                    <option value="450 kWh">450 kWh</option>
+                    <option value="500 kWh">500 kWh</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="add_baterai">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect>
+                        <line x1="22" y1="11" x2="22" y2="13"></line>
+                    </svg>
+                    Jenis Baterai
+                </label>
+                <select id="add_baterai"
+                       class="form-input" 
+                       name="jenis_baterai" 
+                       required>
+                    <option value="">-- Pilih Jenis Baterai --</option>
+                    <option value="LiFePO4">LiFePO4 (Lithium Iron Phosphate)</option>
+                    <option value="NCA">NCA (Nickel Cobalt Aluminum)</option>
+                    <option value="NMC">NMC (Nickel Manganese Cobalt)</option>
+                    <option value="LCO">LCO (Lithium Cobalt Oxide)</option>
+                    <option value="LMO">LMO (Lithium Manganese Oxide)</option>
+                    <option value="LNMO">LNMO (Lithium Nickel Manganese Oxide)</option>
+                </select>
             </div>
         </div>
         <div class="dialog-footer">
@@ -674,6 +835,41 @@
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    select.form-input {
+        cursor: pointer;
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path fill="%236B7280" d="M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+    }
+
+    textarea.form-input {
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+
+    .description-text {
+        color: var(--secondary);
+        font-size: 0.9rem;
+        max-width: 200px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .spec-text {
+        color: var(--secondary);
+        font-size: 0.9rem;
+        max-width: 150px;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .dialog-footer {

@@ -50,8 +50,8 @@
                 </svg>
             </div>
             <div class="stat-content">
-                <h3>{{ $perbaikan->where('status_perbaikan', 'Menunggu')->count() }}</h3>
-                <p>Menunggu</p>
+                <h3>{{ $countMenunggu }}</h3>
+                <p>Pending</p>
             </div>
         </div>
         <div class="stat-card">
@@ -61,8 +61,8 @@
                 </svg>
             </div>
             <div class="stat-content">
-                <h3>{{ $perbaikan->where('status_perbaikan', 'Dalam Proses')->count() }}</h3>
-                <p>Dalam Proses</p>
+                <h3>{{ $countDalamProses }}</h3>
+                <p>In Progress</p>
             </div>
         </div>
         <div class="stat-card">
@@ -73,7 +73,7 @@
                 </svg>
             </div>
             <div class="stat-content">
-                <h3>{{ $perbaikan->where('status_perbaikan', 'Selesai')->count() }}</h3>
+                <h3>{{ $countSelesai }}</h3>
                 <p>Selesai</p>
             </div>
         </div>
@@ -114,7 +114,7 @@
                 <tr>
                     <th>
                         <div class="th-content">
-                            <span>ID</span>
+                            <span>Prioritas</span>
                             <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 5v14M5 12l7 7 7-7"/>
                             </svg>
@@ -143,8 +143,16 @@
             </thead>
             <tbody id="perbaikanTableBody">
                 @forelse($perbaikan as $p)
-                <tr class="perbaikan-row" data-perbaikan-id="{{ $p->id_perbaikan }}">
-                    <td><span class="id-badge">#{{ $p->id_perbaikan }}</span></td>
+                <tr class="perbaikan-row"data-prioritas="{{ $p->prioritas }}">                    
+                    <td>
+                        <span class="prioritas-badge
+                            @if($p->prioritas === 'Tinggi') prioritas-tinggi
+                            @elseif($p->prioritas === 'Sedang') prioritas-sedang
+                            @else prioritas-rendah
+                            @endif">
+                            {{ $p->prioritas }}
+                        </span>
+                    </td>                    
                     <td>
                         <div class="bus-info">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -296,11 +304,42 @@
     </div>
 </div>
 
+{{-- ================= IMAGE ZOOM MODAL ================= --}}
+<dialog id="imageZoomModal" class="image-zoom-modal">
+    <div class="zoom-container">
+        <button type="button" class="close-zoom" onclick="closeZoomModal()">✕</button>
+        <div class="zoom-controls">
+            <button type="button" class="zoom-btn" onclick="zoomInImage()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
+            <button type="button" class="zoom-btn" onclick="zoomOutImage()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+            </button>
+            <button type="button" class="zoom-btn" onclick="resetZoom()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 4v6h6"></path>
+                    <path d="M23 20v-6h-6"></path>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64"></path>
+                    <path d="M3.51 15A9 9 0 0 0 18.36 18.36"></path>
+                </svg>
+            </button>
+        </div>
+        <img id="zoomedImage" src="" alt="Zoomed Image" class="zoomed-image" ondragstart="return false">
+    </div>
+</dialog>
+
 {{-- ================= DIALOG HASIL PERBAIKAN ================= --}}
 @foreach($perbaikan as $p)
 @if(auth()->user()->role === 'Teknisi' && $p->status_perbaikan === 'In Progress')
 <dialog id="dialogHasil{{ $p->id_perbaikan }}" class="modern-dialog">
-    <form method="POST" action="{{ route('perbaikan.submitHasil', $p->id_perbaikan) }}" class="dialog-form">
+    <form method="POST" action="{{ route('perbaikan.submitHasil', $p->id_perbaikan) }}" class="dialog-form" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -315,6 +354,36 @@
                 <label>Deskripsi Perbaikan</label>
                 <textarea name="deskripsi_pekerjaan_teknisi"
                     class="form-input" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="gambar_perbaikan_{{ $p->id_perbaikan }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    Bukti Foto Perbaikan
+                </label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="gambar_perbaikan_{{ $p->id_perbaikan }}" name="gambar_perbaikan" 
+                           class="file-input" accept="image/*" onchange="previewImage(this, 'preview_{{ $p->id_perbaikan }}')">
+                    <label for="gambar_perbaikan_{{ $p->id_perbaikan }}" class="file-upload-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <div>
+                            <p class="upload-title">Klik atau drag gambar ke sini</p>
+                            <p class="upload-subtitle">PNG, JPG, GIF (max. 5MB)</p>
+                        </div>
+                    </label>
+                </div>
+                <div id="preview_{{ $p->id_perbaikan }}" class="image-preview" style="display: none;">
+                    <img src="" alt="Preview" id="preview_img_{{ $p->id_perbaikan }}">
+                    <button type="button" class="btn-remove-image" onclick="removeImage('gambar_perbaikan_{{ $p->id_perbaikan }}', 'preview_{{ $p->id_perbaikan }}')">✕</button>
+                </div>
             </div>
         </div>
 
@@ -1296,6 +1365,261 @@
         font-size: 0.95rem;
     }
 
+    /* File Upload Styles */
+    .file-input {
+        display: none;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+    }
+
+    .file-upload-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        border: 2px dashed var(--border);
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.05), rgba(153, 27, 27, 0.05));
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 150px;
+    }
+
+    .file-upload-label:hover {
+        border-color: var(--primary);
+        background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(153, 27, 27, 0.1));
+    }
+
+    .file-upload-label svg {
+        width: 40px;
+        height: 40px;
+        color: var(--primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .upload-title {
+        font-weight: 600;
+        color: var(--dark);
+        margin: 0;
+    }
+
+    .upload-subtitle {
+        font-size: 0.85rem;
+        color: var(--secondary);
+        margin: 0.25rem 0 0 0;
+    }
+
+    .image-preview {
+        position: relative;
+        margin-top: 1rem;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--border);
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: auto;
+        max-height: 300px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .btn-remove-image {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        background: rgba(220, 38, 38, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-remove-image:hover {
+        background: rgba(220, 38, 38, 1);
+        transform: scale(1.1);
+    }
+
+    /* Image Gallery in Detail */
+    .image-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .gallery-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--border);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .gallery-item:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Detail Image Styles */
+    .detail-image-wrapper {
+        position: relative;
+        margin-top: 1rem;
+    }
+
+    .detail-image {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid var(--border);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .detail-image:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        transform: scale(1.02);
+    }
+
+    .detail-image img {
+        width: 100%;
+        height: auto;
+        max-height: 500px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .zoom-hint {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        color: var(--secondary);
+        font-size: 0.85rem;
+    }
+
+    /* Image Zoom Modal */
+    .image-zoom-modal {
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        background: rgba(0, 0, 0, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+    }
+
+    .image-zoom-modal[open] {
+        display: flex;
+    }
+
+    .image-zoom-modal::backdrop {
+        background: rgba(0, 0, 0, 0.95);
+    }
+
+    .zoom-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: auto;
+    }
+
+    .close-zoom {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        font-size: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .close-zoom:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    .zoom-controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.75rem;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 0.75rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .zoom-btn {
+        width: 44px;
+        height: 44px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid white;
+        color: white;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .zoom-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    .zoomed-image {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        user-select: none;
+    }
+
     /* Responsive */
     @media (max-width: 1200px) {
         .stats-container {
@@ -1384,6 +1708,25 @@
             }
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const tbody = document.getElementById('perbaikanTableBody');
+        const rows = Array.from(tbody.querySelectorAll('.perbaikan-row'));
+
+        const urutanPrioritas = {
+            'Tinggi': 1,
+            'Sedang': 2,
+            'Rendah': 3
+        };
+
+        rows.sort((a, b) => {
+            const pa = a.dataset.prioritas || 'Rendah';
+            const pb = b.dataset.prioritas || 'Rendah';
+            return urutanPrioritas[pa] - urutanPrioritas[pb];
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    });
 
     // View detail function (ENHANCED)
     function lihatDetail(id) {
@@ -1635,15 +1978,24 @@
                                                 <span class="detail-label">Durasi Aktual</span>
                                                 <p class="detail-value" style="color: #1e40af;">
                                                     ${(() => {
-                                                        const start = new Date(data.tanggal_mulai_estimasi);
-                                                        const end = new Date(data.tanggal_selesai_aktual);
-                                                        const diffTime = Math.abs(end - start);
-                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                                                         const estimatedStart = new Date(data.tanggal_mulai_estimasi);
                                                         const estimatedEnd = new Date(data.tanggal_selesai_estimasi);
-                                                        const estimatedDays = Math.ceil((estimatedEnd - estimatedStart) / (1000 * 60 * 60 * 24));
-                                                        const status = diffDays <= estimatedDays ? '✓ Tepat Waktu' : '⚠ Terlambat';
-                                                        return (diffDays === 0 ? 'Kurang dari 1 hari' : diffDays + ' hari') + ' ' + status;
+                                                        const actualEnd = new Date(data.tanggal_selesai_aktual);
+                                                        
+                                                        // Hitung durasi estimasi dalam hari (gunakan floor untuk konsistensi)
+                                                        const estimatedDays = Math.floor((estimatedEnd - estimatedStart) / (1000 * 60 * 60 * 24));
+                                                        
+                                                        // Hitung durasi aktual dalam hari (gunakan floor untuk konsistensi)
+                                                        const actualDays = Math.floor((actualEnd - estimatedStart) / (1000 * 60 * 60 * 24));
+                                                        
+                                                        // Tentukan status: apakah tepat waktu atau terlambat
+                                                        // Tepat waktu jika durasi aktual <= durasi estimasi
+                                                        const status = actualDays <= estimatedDays ? '✓ Tepat Waktu' : '⚠ Terlambat';
+                                                        const statusColor = actualDays <= estimatedDays ? '#059669' : '#dc2626';
+                                                        
+                                                        const durationText = actualDays === 0 ? 'Kurang dari 1 hari' : actualDays + ' hari';
+                                                        
+                                                        return durationText + ' <span style="color: ' + statusColor + '; font-weight: 600;">' + status + '</span>';
                                                     })()}
                                                 </p>
                                             </div>
@@ -1733,6 +2085,34 @@
                             }
                         </div>
                     </div>
+
+                    <!-- Bukti Foto Perbaikan -->
+                    ${data.gambar_perbaikan ? `
+                    <div class="detail-section">
+                        <div class="section-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                            <h4>Bukti Foto Perbaikan</h4>
+                        </div>
+                        <div class="detail-image-wrapper">
+                            <div class="detail-image" onclick="openImageZoom('/storage/perbaikan/' + data.gambar_perbaikan)">
+                                <img src="/storage/perbaikan/${data.gambar_perbaikan}" alt="Bukti Perbaikan">
+                            </div>
+                            <div class="zoom-hint">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                                </svg>
+                                Klik gambar untuk zoom
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
                 `;
             })
             .catch(error => {
@@ -1787,6 +2167,93 @@
             }, 5000);
         });
     });
+
+    // Preview image function
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        const file = input.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = preview.querySelector('img');
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Remove image function
+    function removeImage(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        input.value = '';
+        preview.style.display = 'none';
+    }
+
+    // Image Zoom Functions
+    let currentZoom = 1;
+    let zoomModal = null;
+
+    function openImageZoom(imageSrc) {
+        zoomModal = document.getElementById('imageZoomModal');
+        const img = document.getElementById('zoomedImage');
+        img.src = imageSrc;
+        currentZoom = 1;
+        img.style.transform = `scale(${currentZoom})`;
+        zoomModal.showModal();
+        
+        const handleBackdropClick = function(e) {
+            if (e.target === zoomModal) {
+                closeZoomModal();
+            }
+        };
+        
+        zoomModal.addEventListener('click', handleBackdropClick);
+        
+        const handleEscKey = function(e) {
+            if (e.key === 'Escape') {
+                closeZoomModal();
+            }
+        };
+        
+        zoomModal.addEventListener('keydown', handleEscKey);
+        
+        zoomModal.addEventListener('close', function cleanup() {
+            zoomModal.removeEventListener('click', handleBackdropClick);
+            zoomModal.removeEventListener('keydown', handleEscKey);
+            zoomModal.removeEventListener('close', cleanup);
+            currentZoom = 1;
+            img.style.transform = 'scale(1)';
+        });
+    }
+
+    function closeZoomModal() {
+        if (zoomModal) {
+            zoomModal.close();
+        }
+    }
+
+    function zoomInImage() {
+        currentZoom += 0.2;
+        const img = document.getElementById('zoomedImage');
+        img.style.transform = `scale(${currentZoom})`;
+    }
+
+    function zoomOutImage() {
+        if (currentZoom > 1) {
+            currentZoom -= 0.2;
+            const img = document.getElementById('zoomedImage');
+            img.style.transform = `scale(${currentZoom})`;
+        }
+    }
+
+    function resetZoom() {
+        currentZoom = 1;
+        const img = document.getElementById('zoomedImage');
+        img.style.transform = `scale(${currentZoom})`;
+    }
 
     // Add fadeOut animation
     const style = document.createElement('style');

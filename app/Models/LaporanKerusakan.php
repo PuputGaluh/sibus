@@ -24,6 +24,12 @@ class LaporanKerusakan extends Model
         'status_proses'
     ];
 
+    protected $casts = [
+        'tanggal_lapor' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function bus()
     {
         return $this->belongsTo(Bus::class, 'id_bus');

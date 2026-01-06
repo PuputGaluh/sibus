@@ -120,7 +120,7 @@
                 <tr>
                     <th>
                         <div class="th-content">
-                            <span>ID Laporan</span>
+                            <span>NO</span>
                             <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 5v14M5 12l7 7 7-7"/>
                             </svg>
@@ -142,13 +142,13 @@
                     <th>Teknisi</th>
                     <th>Hasil Perbaikan</th>
                     <th>Tanggal Selesai</th>
-                    <th>Aksi</th>
+                    <!-- <th>Aksi</th> -->
                 </tr>
             </thead>
             <tbody id="rekapTable">
-                @forelse($data as $row)
+            @forelse($data as $index => $row)
                 <tr class="rekap-row">
-                    <td><span class="id-badge">#{{ $row->id_laporan }}</span></td>
+                    <td><span class="id-badge">{{ $index + 1 }}</span></td>
                     <td>
                         <div class="bus-info">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -229,7 +229,7 @@
                             <span class="text-muted">-</span>
                         @endif
                     </td>
-                    <td>
+                    <!-- <td>
                         <button onclick="viewDetail({{ $row->id_laporan }})" class="btn-detail">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -237,7 +237,7 @@
                             </svg>
                             Detail
                         </button>
-                    </td>
+                    </td> -->
                 </tr>
                 @empty
                 <tr>
@@ -782,7 +782,8 @@
         color: white;
     }
 
-    .tingkat-berat {
+
+    .tingkat-tinggi {
         background: linear-gradient(135deg, #ef4444, #dc2626);
         color: white;
     }

@@ -35,6 +35,9 @@ class LaporanPerbaikanController extends Controller
 
         return view('laporan_perbaikan.index', [
             'perbaikan' => $perbaikan,
+            'countMenunggu' => $perbaikan->where('status_perbaikan', 'Pending')->count(),
+            'countDalamProses' => $perbaikan->where('status_perbaikan', 'In Progress')->count(),
+            'countSelesai' => $perbaikan->where('status_perbaikan', 'Selesai')->count(),
             'laporanKerusakan' => LaporanKerusakan::where('status_proses', 'Dijadwalkan')->get(),
             'teknisi' => User::where('role', 'Teknisi')->get(),
             'role' => $user->role
@@ -154,7 +157,12 @@ class LaporanPerbaikanController extends Controller
     public function submitHasil(Request $request, $id)
     {
         $request->validate([
-            'deskripsi_pekerjaan_teknisi' => 'required|string'
+            'deskripsi_pekerjaan_teknisi' => 'required|string',
+            'gambar_perbaikan' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120'
+        ], [
+            'gambar_perbaikan.image' => 'File harus berupa gambar',
+            'gambar_perbaikan.mimes' => 'Format gambar harus JPEG, PNG, JPG, atau GIF',
+            'gambar_perbaikan.max' => 'Ukuran gambar maksimal 5MB'
         ]);
 
         $perbaikan = LaporanPerbaikan::findOrFail($id);
@@ -163,11 +171,21 @@ class LaporanPerbaikanController extends Controller
             abort(403);
         }
 
-        $perbaikan->update([
+        $dataUpdate = [
             'deskripsi_pekerjaan_teknisi' => $request->deskripsi_pekerjaan_teknisi,
             'tanggal_selesai_aktual' => now(),
             'status_perbaikan' => 'Menunggu Validasi'
-        ]);
+        ];
+
+        // Handle upload gambar
+        if ($request->hasFile('gambar_perbaikan')) {
+            $file = $request->file('gambar_perbaikan');
+            $filename = 'perbaikan_' . $id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('perbaikan', $filename, 'public');
+            $dataUpdate['gambar_perbaikan'] = $filename;
+        }
+
+        $perbaikan->update($dataUpdate);
 
         return back()->with('success', 'Hasil perbaikan dikirim ke dispatcher');
     }

@@ -114,8 +114,9 @@
         <select id="keberangkatanFilter" class="filter-select">
             <option value="">Status Keberangkatan</option>
             <option value="Pool">Pool</option>
-            <option value="Akan Berangkat">Akan Berangkat</option>
+            <option value="Awal Dinas">Awal Dinas</option>
             <option value="Perjalanan">Perjalanan</option>
+            <option value="Akhir Dinas">Akhir Dinas</option>
         </select>
     </div>
 
@@ -210,7 +211,8 @@
                         </div>
                     </td>
                     <td>
-                        <span class="status-keberangkatan status-{{ strtolower(str_replace(' ', '-', $item->status_keberangkatan)) }}">
+                        <span class="status-keberangkatan 
+                            status-{{ strtolower(str_replace(' ', '-', $item->status_keberangkatan)) }}">
                             {{ $item->status_keberangkatan }}
                         </span>
                     </td>
@@ -330,8 +332,9 @@
                     <select id="add_status_keberangkatan" class="form-input" name="status_keberangkatan" required>
                         <option value="">Pilih Status</option>
                         <option value="Pool">Pool</option>
-                        <option value="Akan Berangkat">Akan Berangkat</option>
+                        <option value="Awal Dinas">Awal Dinas</option>
                         <option value="Perjalanan">Perjalanan</option>
+                        <option value="Akhir Dinas">Akhir Dinas</option>
                     </select>
                 </div>
             </div>
@@ -2124,6 +2127,16 @@
     .location-icon {
         background: linear-gradient(135deg, #ec4899, #db2777);
     }
+
+    .status-awal-dinas {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+    }
+
+    .status-akhir-dinas {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+    }
 </style>
 
 <script>
@@ -2960,7 +2973,7 @@
         const status = event.target.value;
         const mapSection = document.getElementById('mapSection');
 
-        if (status === 'Perjalanan') {
+        if (['Awal Dinas', 'Perjalanan', 'Akhir Dinas'].includes(status)) {
             document.getElementById('submitLaporan').disabled = true;
             mapSection.style.display = 'block';
 
@@ -2978,11 +2991,13 @@
             }, 200);
 
         } else {
+            // Pool
             document.getElementById('submitLaporan').disabled = false;
             mapSection.style.display = 'none';
             clearMapValues();
         }
     }
+
 
 
 
@@ -3000,7 +3015,7 @@
     function initMapAfterDialog() {
         const statusSelect = document.getElementById('add_status_keberangkatan');
 
-        if (statusSelect.value === 'Perjalanan') {
+        if (['Awal Dinas', 'Perjalanan', 'Akhir Dinas'].includes(statusSelect.value)) {
             document.getElementById('mapSection').style.display = 'block';
 
             loadGoogleMaps(() => {

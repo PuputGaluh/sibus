@@ -56,7 +56,7 @@ class LaporanKerusakanController extends Controller
             'id_bus' => 'required|integer',
             'id_kategori' => 'required|integer',
             'id_tingkat' => 'required|integer',
-            'status_keberangkatan' => 'required|in:Pool,Akan Berangkat,Perjalanan',
+            'status_keberangkatan' => 'required|in:Pool,Awal Dinas,Perjalanan,Akhir Dinas',
             'lokasi_nama' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
@@ -84,29 +84,30 @@ class LaporanKerusakanController extends Controller
         $lat = null;
         $lng = null;
 
-        // POOL → Terminal Purabaya
+        // POOL
         if ($request->status_keberangkatan === 'Pool') {
             $lokasiNama = 'Terminal Purabaya';
             $lat = -7.35132;
             $lng = 112.7254;
         }
 
-        // AKAN BERANGKAT → Sekitar pintu keluar
-        if ($request->status_keberangkatan === 'Akan Berangkat') {
-            $lokasiNama = 'Keluar Terminal Purabaya';
-            $lat = -7.35080;
-            $lng = 112.72620;
-        }
 
-        // PERJALANAN → Ambil dari Google Maps
-        if ($request->status_keberangkatan === 'Perjalanan') {
+        // STATUS YANG WAJIB PILIH MAP
+        if (in_array($request->status_keberangkatan, ['Awal Dinas', 'Perjalanan', 'Akhir Dinas'])) {
+
             if (!$request->latitude || !$request->longitude) {
                 return back()->withErrors([
                     'lokasi' => 'Lokasi wajib dipilih pada peta'
-                ]);
+                ])->withInput();
             }
 
-            $lokasiNama = $request->lokasi_nama ?? 'Dalam Perjalanan (Rute Purabaya)';
+            if (empty($request->lokasi_nama)) {
+                return back()->withErrors([
+                    'lokasi' => 'Nama jalan gagal didapatkan, silakan klik ulang peta'
+                ])->withInput();
+            }
+
+            $lokasiNama = $request->lokasi_nama;
             $lat = $request->latitude;
             $lng = $request->longitude;
         }

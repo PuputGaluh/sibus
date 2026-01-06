@@ -504,16 +504,8 @@
             </button>
         </form>
 
-        <!-- Uncomment jika ada fitur register -->
-        <!-- <div class="divider">
-            <span>atau</span>
-        </div>
-        <div class="register-link">
-            Belum punya akun? <a href="{{ route('register') }}">Daftar Sekarang</a>
-        </div> -->
-
         <div class="login-footer">
-            © 2024 INKA. All rights reserved.
+            © 2025 INKA. All rights reserved.
         </div>
     </div>
 
